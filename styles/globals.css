@@ -1,3 +1,8 @@
+@font-face {
+  font-family: Mono;
+  src: url('/Font.ttf');
+}
+
 html,
 body {
   padding: 0;
