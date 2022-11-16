@@ -10,7 +10,7 @@ export default function Document() {
       <Head />
       <title>BM Project</title>
       <meta name="description" content="Project for course BM" />
-      <link rel="icon" href="/favicon.svg" />
+      <link rel="icon" href="/icons/man.svg" />
       <body>
         <Main />
         <NextScript />

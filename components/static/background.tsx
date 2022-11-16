@@ -28,6 +28,6 @@ export default class Background extends P5Component {
       y += stepY
     }
 
-    p5.image(this.assets['sidewalk'], 0, 0, p5.width, p5.height)
+    // p5.image(this.assets['sidewalk'], 0, 0, p5.width, p5.height)
   }
 }

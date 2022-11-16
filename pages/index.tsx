@@ -61,15 +61,13 @@ const Index = () => {
     }
 
     components['background'] = new Background(assets)
-    components['grid'] = new Grid(dims.w, dims.h, [0, 80, dims.w, dims.h])
+    components['grid'] = new Grid(dims.w, dims.h, [0, 0, dims.w, 0.44 * dims.w])
     components['crowd'] = new Crowd(assets, components['grid'] as Grid)
   }
 
   // Preload required assets, fonts etc.
   const preload = (p5: p5Types) => {
     setFont(p5.loadFont('Font.ttf'))
-    
-    loadAssets(p5)
   }
 
   // Perform initial setup
@@ -105,13 +103,13 @@ const Index = () => {
 
   return (
     <div ref={parentRef} style={sx.container}>
-      <Sketch
+      {dims.w && dims.h &&<Sketch
         preload={preload}
         setup={setup}
         windowResized={onResize}
         mouseClicked={onClick}
         draw={draw}
-      />
+      />}
     </div>
   )
 }
