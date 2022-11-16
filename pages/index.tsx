@@ -1,15 +1,19 @@
-import useResizeObserver from '@react-hook/resize-observer'
 import dynamic from 'next/dynamic'
 import p5Types from 'p5'
-import { createRef, useEffect, useState } from 'react'
-import Crowd from '../components/actors/crowd'
-import Background from '../components/static/background'
-import Grid from '../components/static/grid'
-import { Assets } from '../types/Assets'
-import { Components } from '../types/Components'
+import { createRef, memo, useEffect, useState } from 'react'
 const Sketch = dynamic(() => import('react-p5').then((mod) => mod.default), {
   ssr: false,
 })
+
+import Background from '../components/Background'
+import ControlPanel from '../components/ControlPanel'
+import { AppConfig } from '../types'
+import { Assets } from '../types/Assets'
+import { Components } from '../types/Components'
+import Crowd, { CrowdParams } from '../elements/actors/crowd'
+import Grid, { GridParams } from '../elements/static/grid'
+import P5Background, { BackgroundParams } from '../elements/static/p5background'
+import { useControlPanelContext } from '../context'
 
 /**
  * Main component responsible for
@@ -22,8 +26,14 @@ const sx = {
     width: '100vw',
     height: '100vh',
   },
+  canvas: {
+    position: 'fixed' as 'fixed',
+    width: '100vw',
+    height: '100vh',
+  },
 }
 
+// Static assets to load
 const images = [
   'block',
   'bridge',
@@ -37,11 +47,12 @@ const images = [
 
 const Index = () => {
   // State
-  const [font, setFont] = useState<p5Types.Font | null>(null)
-  const [dims, setDims] = useState({ w: 0, h: 0 })
   const parentRef = createRef<HTMLDivElement>()
-  let assets = {} as Assets
-  let components = {} as Components
+  const [dims, setDims] = useState({ w: 0, h: 0 })
+  const [font, setFont] = useState<p5Types.Font>()
+  const [assets, setAssets] = useState<Assets>({})
+  const [components, setComponents] = useState<Components>({})
+  const { showDestination, showNeighbourhood } = useControlPanelContext()
 
   // Retrieve viewport dims after initial render
   useEffect(() => {
@@ -53,16 +64,37 @@ const Index = () => {
       w: parentRef.current.offsetWidth,
       h: parentRef.current.offsetHeight,
     })
-  }, [])
+  }, [parentRef.current?.offsetWidth, parentRef.current?.offsetHeight])
 
+  // Helper method to load assets
   const loadAssets = (p5: p5Types) => {
+    let components = {} as Components
+    let assets = {} as Assets
+
+    // Load static assets like images in a dict
     for (let i = 0; i < images.length; i++) {
       assets[images[i]] = p5.loadImage(`icons/${images[i]}.svg`)
     }
+    setAssets(assets)
 
-    components['background'] = new Background(assets)
-    components['grid'] = new Grid(dims.w, dims.h, [0, 0, dims.w, 0.44 * dims.w])
-    components['crowd'] = new Crowd(assets, components['grid'] as Grid)
+    // Initialize dynamic components
+    components['background'] = new P5Background({
+      assets: assets,
+    } as BackgroundParams)
+
+    components['grid'] = new Grid({
+      assets: assets,
+      w: dims.w,
+      h: dims.h,
+    } as GridParams)
+
+    components['crowd'] = new Crowd({
+      assets: assets,
+      numOfPedestrians: 1,
+      grid: components['grid'],
+    } as CrowdParams)
+
+    setComponents(components)
   }
 
   // Preload required assets, fonts etc.
@@ -72,46 +104,72 @@ const Index = () => {
 
   // Perform initial setup
   const setup = (p5: p5Types, canvasParentRef: Element) => {
-    p5.createCanvas(dims.w, dims.h).parent(canvasParentRef)
+    const canvas = p5.createCanvas(dims.w, dims.h).parent(canvasParentRef)
     p5.textFont(font!)
-    
+
     loadAssets(p5)
   }
 
   // Triggers on resize
   const onResize = (p5: p5Types) => {
-    if (p5.width == dims.w && p5.height == dims.h) {
+    if (p5.width == window.innerWidth && p5.height == window.innerHeight) {
       return
     }
-    p5.resizeCanvas(dims.w, dims.h)
+    p5.resizeCanvas(window.innerWidth, window.innerHeight)
   }
 
   // Called in render loop
   const draw = (p5: p5Types) => {
+    let appConfig = {
+      destination: showDestination,
+      neighbourhood: showNeighbourhood,
+    } as AppConfig
+
     components['background'].show(p5)
     components['grid'].show(p5)
-    components['crowd'].show(p5)
+    components['crowd'].show(p5, appConfig)
   }
 
-  // Triggers on click
+  // Triggers on button press
+  const onKeyPressed = (p5: p5Types) => {
+    const mouseX = p5.mouseX
+    const mouseY = p5.mouseY
+
+    if (p5.key == ' ') {
+      ;(components['crowd'] as Crowd).addPedestrian(mouseX, mouseY)
+    }
+    return
+  }
+
+  // Triggers on button press
   const onClick = (p5: p5Types) => {
     const mouseX = p5.mouseX
     const mouseY = p5.mouseY
 
-    // Use mouseX, mouseY here
+    // if (p5.mouseButton == 'left') {
+    //   ;(components['crowd'] as Crowd).addPedestrian(mouseX, mouseY)
+    // }
+    return
   }
 
   return (
     <div ref={parentRef} style={sx.container}>
-      {dims.w && dims.h &&<Sketch
-        preload={preload}
-        setup={setup}
-        windowResized={onResize}
-        mouseClicked={onClick}
-        draw={draw}
-      />}
+      <Background />
+      {dims.w && dims.h && (
+        <div style={sx.canvas}>
+          <Sketch
+            preload={preload}
+            setup={setup}
+            windowResized={onResize}
+            keyTyped={onKeyPressed}
+            mouseClicked={onClick}
+            draw={draw}
+          />
+        </div>
+      )}
+      <ControlPanel />
     </div>
   )
 }
 
-export default Index
+export default memo(Index)
