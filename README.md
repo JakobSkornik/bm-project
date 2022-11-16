@@ -11,3 +11,8 @@
 * To start development server: `yarn dev`
 * To test build before deployment: `yarn build`
 * To test built files: `yarn start`
+
+## CC (Icons)
+
+* parkjisun
+* Rafo Barbosa

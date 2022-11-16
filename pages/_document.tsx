@@ -1,5 +1,9 @@
 import { Html, Head, Main, NextScript } from 'next/document'
 
+/**
+ * App metadata
+ */
+
 export default function Document() {
   return (
     <Html>
