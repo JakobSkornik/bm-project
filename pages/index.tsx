@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic'
 import p5Types from 'p5'
-import { createRef, memo, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 const Sketch = dynamic(() => import('react-p5').then((mod) => mod.default), {
   ssr: false,
 })
@@ -47,35 +47,39 @@ const images = [
 
 const Index = () => {
   // State
-  const parentRef = createRef<HTMLDivElement>()
   const [dims, setDims] = useState({ w: 0, h: 0 })
   const [font, setFont] = useState<p5Types.Font>()
-  const [assets, setAssets] = useState<Assets>({})
   const [components, setComponents] = useState<Components>({})
-  const { showDestination, showNeighbourhood } = useControlPanelContext()
+  const {
+    clear,
+    addNumber,
+    showDestination,
+    showNeighbourhood,
+    onClear,
+  } = useControlPanelContext()
+  let assets = {} as Assets
+  const handleResize = useCallback(() => {
+    setDims({ w: window.innerWidth, h: window.innerHeight })
+  }, [])
 
   // Retrieve viewport dims after initial render
   useEffect(() => {
-    if (!parentRef.current) {
-      return
-    }
-
     setDims({
-      w: parentRef.current.offsetWidth,
-      h: parentRef.current.offsetHeight,
+      w: window.innerWidth,
+      h: window.innerHeight,
     })
-  }, [parentRef.current?.offsetWidth, parentRef.current?.offsetHeight])
+    window.addEventListener('resize', handleResize, false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Helper method to load assets
   const loadAssets = (p5: p5Types) => {
     let components = {} as Components
-    let assets = {} as Assets
 
     // Load static assets like images in a dict
     for (let i = 0; i < images.length; i++) {
       assets[images[i]] = p5.loadImage(`icons/${images[i]}.svg`)
     }
-    setAssets(assets)
 
     // Initialize dynamic components
     components['background'] = new P5Background({
@@ -104,7 +108,7 @@ const Index = () => {
 
   // Perform initial setup
   const setup = (p5: p5Types, canvasParentRef: Element) => {
-    const canvas = p5.createCanvas(dims.w, dims.h).parent(canvasParentRef)
+    p5.createCanvas(dims.w, dims.h).parent(canvasParentRef)
     p5.textFont(font!)
 
     loadAssets(p5)
@@ -116,10 +120,16 @@ const Index = () => {
       return
     }
     p5.resizeCanvas(window.innerWidth, window.innerHeight)
+    ;(components['grid'] as Grid).resize(p5)
   }
 
   // Called in render loop
   const draw = (p5: p5Types) => {
+    if (clear) {
+      loadAssets(p5)
+      onClear()
+    }
+
     let appConfig = {
       destination: showDestination,
       neighbourhood: showNeighbourhood,
@@ -136,7 +146,9 @@ const Index = () => {
     const mouseY = p5.mouseY
 
     if (p5.key == ' ') {
-      ;(components['crowd'] as Crowd).addPedestrian(mouseX, mouseY)
+      for (let i = 0; i < addNumber; i++) {
+        ;(components['crowd'] as Crowd).addPedestrian(mouseX, mouseY)
+      }
     }
     return
   }
@@ -153,7 +165,7 @@ const Index = () => {
   }
 
   return (
-    <div ref={parentRef} style={sx.container}>
+    <div style={sx.container}>
       <Background />
       {dims.w && dims.h && (
         <div style={sx.canvas}>

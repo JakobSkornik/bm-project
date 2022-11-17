@@ -1,8 +1,12 @@
 export type ControlPanelContextType = {
-  showControlPanel: false
+  showControlPanel: boolean
   toggleShowControlPanel: (show: boolean) => void
-  showDestination: false
+  showDestination: boolean
   toggleShowDestination: () => void
-  showNeighbourhood: false
+  showNeighbourhood: boolean
   toggleShowNeighbourhood: () => void
+  clear: boolean
+  onClear: () => void
+  addNumber: number
+  setAddNumber: (num: number) => void
 }

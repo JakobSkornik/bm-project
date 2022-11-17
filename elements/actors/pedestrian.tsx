@@ -7,37 +7,32 @@ import { getRandomChoice } from '../hooks/getRandomChoice'
 import { AppConfig } from '../../types'
 
 export type PedestrianParams = P5ComponentParams & {
-  x?: number
-  y?: number
   grid: Grid
   movementSpeed: number
+  x?: number
+  y?: number
+  neighbourhoodRadius?: number
 }
 
 export default class Pedestrian extends P5Component {
-  x: number = 0
-  y: number = 0
   grid: Grid
   movementSpeed: number
   velocity: number[]
   destination: number[] = []
+  x: number = 0
+  y: number = 0
+  neighbourhoodRadius: number = 200
 
   constructor(params: PedestrianParams) {
     super(params as P5ComponentParams)
     this.grid = params.grid
     this.movementSpeed = params.movementSpeed ?? 1
 
-    if (
-      params.x == null ||
-      params.y == null ||
-      params.x < 0 ||
-      params.x > this.grid.w ||
-      params.y < 0 ||
-      params.y > this.grid.h
-    ) {
+    if (this.valid(params)) {
       this.setRandomStartLocation()
     } else {
-      this.x = params.x
-      this.y = params.y
+      this.x = params.x!
+      this.y = params.y!
       this.destination = this.getRandomDestination()
     }
 
@@ -58,6 +53,8 @@ export default class Pedestrian extends P5Component {
     p5.ellipse(this.x, this.y, 20, 5)
 
     if (appConfig) {
+
+      // Show destination
       if (appConfig.destination) {
         p5.fill(0)
         p5.circle(this.destination[0], this.destination[1], 10)
@@ -68,10 +65,11 @@ export default class Pedestrian extends P5Component {
         p5.line(this.x, this.y, this.destination[0], this.destination[1])
       }
 
+      // Show neighbourhood radius
       if (appConfig.neighbourhood) {
         p5.noStroke()
-        p5.fill(200, 100, 100, 100)
-        p5.circle(this.x, this.y, 200)
+        p5.fill(200, 100, 100, 50)
+        p5.circle(this.x, this.y, this.neighbourhoodRadius)
       }
     }
   }
@@ -82,16 +80,28 @@ export default class Pedestrian extends P5Component {
       this.x += this.velocity[0]
       this.y += this.velocity[1]
 
-      if (this.outOfGrid()) {
+      if (this.respawn()) {
         this.setRandomStartLocation()
       }
       this.velocity = this.getVelocity()
     }
   }
 
-  outOfGrid = () => {
+  valid = (params: PedestrianParams) => {
     return (
-      this.x < 0 || this.x > this.grid.w || this.y < 0 || this.y > this.grid.h
+      params.x == null ||
+      params.y == null ||
+      params.x < 0 ||
+      params.x > this.grid.w ||
+      params.y < 0 ||
+      params.y > this.grid.h
+    )
+  }
+
+  respawn = () => {
+    return (
+      Math.round(this.x) == this.destination[0] &&
+      Math.round(this.y) == this.destination[1]
     )
   }
 

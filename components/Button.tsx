@@ -48,6 +48,7 @@ const Button = (props: ButtonProps) => {
             width={props.iconSize ?? 30}
             height={props.iconSize ?? 30}
             style={sx.icon}
+            priority
           />
         </span>
       )}

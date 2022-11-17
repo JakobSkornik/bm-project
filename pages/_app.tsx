@@ -9,6 +9,8 @@ import { ControlPanelContextType } from '../types'
  */
 
 export default function App({ Component, pageProps }: AppProps) {
+  const [pedestrians, setPedestrians] = useState(1)
+  const [clear, onClear] = useState(false)
   const [ctrlPanel, toggleCtrlPanel] = useState(true)
   const [destination, toggleDestination] = useState(false)
   const [neighbourhood, toggleNeighbourhood] = useState(false)
@@ -25,10 +27,28 @@ export default function App({ Component, pageProps }: AppProps) {
     toggleNeighbourhood(!neighbourhood)
   }
 
+  const setNewAddNumber = (num: number) => {
+    setPedestrians(num)
+  }
+
+  const clearCanvas = () => {
+    const timeId = setTimeout(() => {
+      onClear(!clear)
+    }, 100)
+
+    return () => {
+      clearTimeout(timeId)
+    }
+  }
+
   const controlPanelContext = {
+    addNumber: pedestrians,
+    clear: clear,
+    setAddNumber: setNewAddNumber,
     showControlPanel: ctrlPanel,
     showDestination: destination,
     showNeighbourhood: neighbourhood,
+    onClear: clearCanvas,
     toggleShowControlPanel: updateControlPanel,
     toggleShowDestination: updateDestination,
     toggleShowNeighbourhood: updateNeighbourhood,

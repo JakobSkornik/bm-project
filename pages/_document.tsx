@@ -10,6 +10,7 @@ export default function Document() {
       <Head />
       <title>BM Project</title>
       <meta name="description" content="Project for course BM" />
+      <meta name="viewport" content="width=device-width,height=device-height, initial-scale=1.0"></meta>
       <link rel="icon" href="/icons/man.svg" />
       <body>
         <Main />

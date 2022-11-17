@@ -3,11 +3,15 @@ import { ControlPanelContextType, ControlPanelProps } from '../types'
 
 export const ControlPanelContext = createContext<ControlPanelContextType>({
   showControlPanel: false,
-  toggleShowControlPanel: (show: boolean) => {},
+  toggleShowControlPanel: () => {},
   showDestination: false,
   toggleShowDestination: () => {},
   showNeighbourhood: false,
   toggleShowNeighbourhood: () => {},
+  clear: false,
+  onClear: () => {},
+  addNumber: 0,
+  setAddNumber: () => {}
 })
 
 const ControlPanelProvider: FC<ControlPanelProps> = (
