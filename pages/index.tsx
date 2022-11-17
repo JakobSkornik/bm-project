@@ -61,6 +61,7 @@ const Index = () => {
     onClear,
   } = useControlPanelContext()
   let assets = {} as Assets
+
   const handleResize = useCallback(() => {
     setDims({ w: window.innerWidth, h: window.innerHeight })
   }, [])
@@ -136,6 +137,8 @@ const Index = () => {
     }
     p5.resizeCanvas(window.innerWidth, window.innerHeight)
     ;(components['grid'] as Grid).resize(p5)
+    ;(components['fps'] as FPSCounter).resize(p5)
+    ;(components['n-counter'] as PedestrianCounter).resize(p5)
   }
 
   // Called in render loop
@@ -150,6 +153,9 @@ const Index = () => {
       destination: showDestination,
       neighbourhood: showNeighbourhood,
       numOfPedestrians: (components['crowd'] as Crowd).numOfPedestrians,
+      playbackSpeedPercent: 100,
+      // TODO MAKE VELOCITY CONTEXT VARIABLE
+      showVelocity: true
     } as AppConfig
 
     if (pause) {

@@ -36,7 +36,7 @@ const Button = (props: ButtonProps) => {
       value={props.value}
       type="button"
       style={{ ...sx.button, ...props.style }}
-      onClick={props.onClick}
+      onMouseDown={props.onClick}
       onMouseEnter={mouseEnter}
       onMouseLeave={mouseLeave}
     >

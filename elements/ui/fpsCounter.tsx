@@ -26,4 +26,9 @@ export default class FPSCounter extends P5Component {
     p5.fill(0)
     p5.text( `FPS: ${Math.round(p5.frameRate())}`, this.x + 5, this.y + 15)
   }
+
+  resize = (p5: p5Types) => {
+    this.x = p5.width - 65
+    this.y = 5
+  }
 }

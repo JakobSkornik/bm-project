@@ -15,6 +15,7 @@ export default class Crowd extends P5Component {
   numOfPedestrians: number
   pedestrians: Pedestrian[] = []
   grid: Grid
+  frame: number = 0
 
   constructor(params: CrowdParams) {
     super(params as P5ComponentParams)
@@ -26,7 +27,7 @@ export default class Crowd extends P5Component {
         new Pedestrian({
           assets: this.assets,
           grid: this.grid,
-          movementSpeed: getRandomInt(5, 1),
+          movementSpeed: getRandomInt(4, 1),
         } as PedestrianParams),
       )
     }
@@ -36,11 +37,17 @@ export default class Crowd extends P5Component {
     for (let i = 0; i < this.numOfPedestrians; i++) {
       this.pedestrians[i].show(p5, appConfig)
     }
-    this.move()
+    this.move(appConfig)
   }
 
-  move = () => {
+  move = (appConfig?: AppConfig) => {
     for (let i = 0; i < this.numOfPedestrians; i++) {
+      /**
+       * TODO
+       * Extend appconfig to contain boolean for toggling neighbours
+       */
+
+      this.pedestrians[i].getNeighbours(this)
       this.pedestrians[i].move()
     }
   }

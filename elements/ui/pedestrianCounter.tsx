@@ -31,4 +31,9 @@ export default class PedestrianCounter extends P5Component {
     p5.fill(0)
     p5.text( `N: ${appConfig.numOfPedestrians}`, this.x + 5, this.y + 15)
   }
+
+  resize = (p5: p5Types) => {
+    this.x = p5.width - 60
+    this.y = 30
+  }
 }

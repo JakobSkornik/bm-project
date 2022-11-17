@@ -5,6 +5,8 @@ import P5Component, { P5ComponentParams } from '..'
 import { getRandomInt } from '../hooks/getRandomInt'
 import { getRandomChoice } from '../hooks/getRandomChoice'
 import { AppConfig } from '../../types'
+import Crowd from './crowd'
+import { getDistance } from '../hooks/getDistance'
 
 export type PedestrianParams = P5ComponentParams & {
   grid: Grid
@@ -19,9 +21,13 @@ export default class Pedestrian extends P5Component {
   movementSpeed: number
   velocity: number[]
   destination: number[] = []
+  neighbours: Pedestrian[] = []
   x: number = 0
   y: number = 0
-  neighbourhoodRadius: number = 200
+
+  // TODO MAKE THESE CONTEXT VARIABLES WITH BUTTONS IN CTRL PANEL
+  neighbourhoodRadius: number = 50
+  playbackSpeed: number = 0.2
 
   constructor(params: PedestrianParams) {
     super(params as P5ComponentParams)
@@ -53,7 +59,6 @@ export default class Pedestrian extends P5Component {
     p5.ellipse(this.x, this.y, 20, 5)
 
     if (appConfig) {
-
       // Show destination
       if (appConfig.destination) {
         p5.fill(0)
@@ -69,21 +74,37 @@ export default class Pedestrian extends P5Component {
       if (appConfig.neighbourhood) {
         p5.noStroke()
         p5.fill(200, 100, 100, 50)
-        p5.circle(this.x, this.y, this.neighbourhoodRadius)
+        p5.circle(this.x, this.y, this.neighbourhoodRadius * 2)
+      }
+
+      // Show velocity
+      if (appConfig.showVelocity) {
+        p5.strokeWeight(1)
+        p5.stroke(100)
+        p5.line(
+          this.x,
+          this.y,
+          this.x + this.velocity[0] * 50,
+          this.y + this.velocity[1] * 50,
+        )
+        p5.noStroke()
+        p5.fill(100)
+        p5.circle(
+          this.x + this.velocity[0] * 50,
+          this.y + this.velocity[1] * 50, 3)
       }
     }
   }
 
   move = () => {
+    this.velocity = this.getVelocity()
     for (let i = 0; i < this.movementSpeed; i++) {
-      let [x, y] = [this.x, this.y]
-      this.x += this.velocity[0]
-      this.y += this.velocity[1]
+      this.x += this.velocity[0] * this.playbackSpeed
+      this.y += this.velocity[1] * this.playbackSpeed
 
       if (this.respawn()) {
         this.setRandomStartLocation()
       }
-      this.velocity = this.getVelocity()
     }
   }
 
@@ -119,6 +140,7 @@ export default class Pedestrian extends P5Component {
   }
 
   getVelocity = () => {
+    // BASE VELOCITY
     const x1 = this.x
     const y1 = this.y
     const x2 = this.destination[0]
@@ -126,8 +148,39 @@ export default class Pedestrian extends P5Component {
 
     const dx = x2 - x1
     const dy = y2 - y1
-    const normFactor = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2))
+    const nFactor = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2))
+    const base = [dx / nFactor, dy / nFactor]
 
-    return [dx / normFactor, dy / normFactor]
+    // SEPARATION VELOCITY
+    if (this.neighbours.length > 0) {
+      const sFactor = 0.5
+      let [sx, sy, n] = [0, 0, 0]
+      for (let i = 0; i < this.neighbours.length; i++) {
+        sx += this.neighbours[i].x - this.x
+        sy += this.neighbours[i].y - this.y
+        n++
+      }
+      let sf = Math.sqrt(Math.pow(sx, 2) + Math.pow(sy, 2))
+      sx /= n * sf
+      sy /= n * sf
+      return [base[0] - sx * sFactor, base[1] - sy * sFactor]
+    } else {
+      return base
+    }
+  }
+
+  getNeighbours = (crowd: Crowd) => {
+    this.neighbours = []
+    for (let i = 0; i < crowd.numOfPedestrians; i++) {
+      const d = getDistance(
+        this.x,
+        this.y,
+        crowd.pedestrians[i].x,
+        crowd.pedestrians[i].y,
+      )
+      if (d <= this.neighbourhoodRadius && d > 0) {
+        this.neighbours.push(crowd.pedestrians[i])
+      }
+    }
   }
 }
