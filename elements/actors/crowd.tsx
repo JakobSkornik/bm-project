@@ -1,46 +1,50 @@
 import p5Types from 'p5'
 
 import Grid from '../static/grid'
+import P5Component from '..'
 import Pedestrian, { PedestrianParams } from './pedestrian'
-import P5Component, { P5ComponentParams } from '..'
 import { getRandomInt } from '../hooks/getRandomInt'
-import { AppConfig } from '../../types'
+import { State } from '../../store'
+import { Images } from '../../types'
 
-export type CrowdParams = P5ComponentParams & {
-  numOfPedestrians?: number
+export type CrowdParams = {
   grid: Grid
+  images: Images
+  numOfPedestrians: number
 }
 
 export default class Crowd extends P5Component {
+  grid: Grid
+  images: Images
   numOfPedestrians: number
   pedestrians: Pedestrian[] = []
-  grid: Grid
   frame: number = 0
 
   constructor(params: CrowdParams) {
-    super(params as P5ComponentParams)
+    super()
+    this.images = params.images
     this.grid = params.grid
-    this.numOfPedestrians = params.numOfPedestrians ?? 0
+    this.numOfPedestrians = params.numOfPedestrians
 
     for (let i = 0; i < this.numOfPedestrians; i++) {
       this.pedestrians.push(
         new Pedestrian({
-          assets: this.assets,
           grid: this.grid,
-          movementSpeed: getRandomInt(4, 1),
+          images: params.images,
+          movementSpeed: getRandomInt(5, 1),
         } as PedestrianParams),
       )
     }
   }
 
-  show = (p5: p5Types, appConfig?: AppConfig) => {
+  show = (p5: p5Types, state?: State) => {
     for (let i = 0; i < this.numOfPedestrians; i++) {
-      this.pedestrians[i].show(p5, appConfig)
+      this.pedestrians[i].show(p5, state)
     }
-    this.move(appConfig)
+    this.move(state)
   }
 
-  move = (appConfig?: AppConfig) => {
+  move = (state?: State) => {
     for (let i = 0; i < this.numOfPedestrians; i++) {
       /**
        * TODO
@@ -55,12 +59,15 @@ export default class Crowd extends P5Component {
   addPedestrian = (x: number, y: number) => {
     this.numOfPedestrians++
 
-    this.pedestrians.push(new Pedestrian({
-      x: x,
-      y: y,
-      assets: this.assets,
-      grid: this.grid,
-      movementSpeed: getRandomInt(5, 1),
-    } as PedestrianParams))
+    this.pedestrians.push(
+      new Pedestrian({
+        x: x,
+        y: y,
+        assets: this.images,
+        grid: this.grid,
+        images: this.images,
+        movementSpeed: getRandomInt(5, 1),
+      } as PedestrianParams),
+    )
   }
 }

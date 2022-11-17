@@ -1,8 +1,8 @@
 import p5Types from 'p5'
-import P5Component, { P5ComponentParams } from '..'
-import { AppConfig } from '../../types'
+import P5Component from '..'
+import { State } from '../../store'
 
-export type PedestrianCounterParams = P5ComponentParams & {
+export type PedestrianCounterParams = {
   x: number
   y: number
 }
@@ -12,13 +12,13 @@ export default class PedestrianCounter extends P5Component {
   y: number
 
   constructor(params: PedestrianCounterParams) {
-    super(params as P5ComponentParams)
+    super()
     this.x = params.x
     this.y = params.y
   }
 
-  show = (p5: p5Types, appConfig?: AppConfig) => {
-    if (!appConfig) {
+  show = (p5: p5Types, state?: State) => {
+    if (!state) {
       return
     }
 
@@ -29,7 +29,7 @@ export default class PedestrianCounter extends P5Component {
     p5.rect(this.x, this.y, w, h, 2)
 
     p5.fill(0)
-    p5.text( `N: ${appConfig.numOfPedestrians}`, this.x + 5, this.y + 15)
+    p5.text( `N: ${state.numOfPedestrians}`, this.x + 5, this.y + 15)
   }
 
   resize = (p5: p5Types) => {

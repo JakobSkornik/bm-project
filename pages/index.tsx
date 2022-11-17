@@ -7,15 +7,13 @@ const Sketch = dynamic(() => import('react-p5').then((mod) => mod.default), {
 
 import Background from '../components/Background'
 import ControlPanel from '../components/ControlPanel'
-import { AppConfig } from '../types'
-import { Assets } from '../types/Assets'
-import { Components } from '../types/Components'
-import Crowd, { CrowdParams } from '../elements/actors/crowd'
-import Grid, { GridParams } from '../elements/static/grid'
-import P5Background, { BackgroundParams } from '../elements/static/p5background'
-import { useControlPanelContext } from '../context'
-import FPSCounter from '../elements/ui/fpsCounter'
 import PedestrianCounter from '../elements/ui/pedestrianCounter'
+import P5Background from '../elements/static/p5background'
+import useStore from '../store'
+import Crowd, { CrowdParams } from '../elements/actors/crowd'
+import FPSCounter from '../elements/ui/fpsCounter'
+import Grid, { GridParams } from '../elements/static/grid'
+import { Components, Images } from '../types'
 
 /**
  * Main component responsible for
@@ -36,7 +34,7 @@ const sx = {
 }
 
 // Static assets to load
-const images = [
+const imgToLoad = [
   'block',
   'bridge',
   'cityhouse',
@@ -49,18 +47,9 @@ const images = [
 
 const Index = () => {
   // State
+  const [state, actions] = useStore()
   const [dims, setDims] = useState({ w: 0, h: 0 })
   const [font, setFont] = useState<p5Types.Font>()
-  const [components, setComponents] = useState<Components>({})
-  const {
-    clear,
-    addNumber,
-    pause,
-    showDestination,
-    showNeighbourhood,
-    onClear,
-  } = useControlPanelContext()
-  let assets = {} as Assets
 
   const handleResize = useCallback(() => {
     setDims({ w: window.innerWidth, h: window.innerHeight })
@@ -79,42 +68,39 @@ const Index = () => {
   // Helper method to load assets
   const loadAssets = (p5: p5Types) => {
     let components = {} as Components
+    let images = {} as Images
 
     // Load static assets like images in a dict
-    for (let i = 0; i < images.length; i++) {
-      assets[images[i]] = p5.loadImage(`icons/${images[i]}.svg`)
+    for (let i = 0; i < imgToLoad.length; i++) {
+      images[imgToLoad[i]] = p5.loadImage(`icons/${imgToLoad[i]}.svg`)
     }
 
     // Initialize dynamic components
-    components['background'] = new P5Background({
-      assets: assets,
-    } as BackgroundParams)
+    components['background'] = new P5Background()
 
     components['grid'] = new Grid({
-      assets: assets,
       w: dims.w,
       h: dims.h,
     } as GridParams)
 
     components['crowd'] = new Crowd({
-      assets: assets,
-      numOfPedestrians: 1,
+      images: images,
+      numOfPedestrians: state.numOfPedestrians,
       grid: components['grid'],
     } as CrowdParams)
 
     components['fps'] = new FPSCounter({
-      assets: assets,
       x: p5.width - 65,
       y: 5,
     })
 
     components['n-counter'] = new PedestrianCounter({
-      assets: assets,
       x: p5.width - 60,
       y: 30,
     })
 
-    setComponents(components)
+    actions.setComponents(components)
+    actions.setImages(images)
   }
 
   // Preload required assets, fonts etc.
@@ -136,39 +122,31 @@ const Index = () => {
       return
     }
     p5.resizeCanvas(window.innerWidth, window.innerHeight)
-    ;(components['grid'] as Grid).resize(p5)
-    ;(components['fps'] as FPSCounter).resize(p5)
-    ;(components['n-counter'] as PedestrianCounter).resize(p5)
+    ;(state.components['grid'] as Grid).resize(p5)
+    ;(state.components['fps'] as FPSCounter).resize(p5)
+    ;(state.components['n-counter'] as PedestrianCounter).resize(p5)
   }
 
   // Called in render loop
   const draw = (p5: p5Types) => {
-    if (clear) {
-      components['background'].show(p5)
+    if (state.clear) {
+      state.components['background'].show(p5)
       loadAssets(p5)
-      onClear()
+      actions.setClear(false)
+      actions.setNumOfPedestrians(1)
     }
 
-    let appConfig = {
-      destination: showDestination,
-      neighbourhood: showNeighbourhood,
-      numOfPedestrians: (components['crowd'] as Crowd).numOfPedestrians,
-      playbackSpeedPercent: 100,
-      // TODO MAKE VELOCITY CONTEXT VARIABLE
-      showVelocity: true
-    } as AppConfig
-
-    if (pause) {
-      components['fps'].show(p5)
-      components['n-counter'].show(p5, appConfig)
+    if (state.pause) {
+      state.components['fps'].show(p5)
+      state.components['n-counter'].show(p5, state)
       return
     }
 
-    components['background'].show(p5)
-    components['grid'].show(p5)
-    components['crowd'].show(p5, appConfig)
-    components['fps'].show(p5)
-    components['n-counter'].show(p5, appConfig)
+    state.components['background'].show(p5)
+    state.components['grid'].show(p5)
+    state.components['crowd'].show(p5, state)
+    state.components['fps'].show(p5)
+    state.components['n-counter'].show(p5, state)
   }
 
   // Triggers on button press
@@ -177,9 +155,12 @@ const Index = () => {
     const mouseY = p5.mouseY
 
     if (p5.key == ' ') {
-      for (let i = 0; i < addNumber; i++) {
-        ;(components['crowd'] as Crowd).addPedestrian(mouseX, mouseY)
+      for (let i = 0; i < state.pedestriansToAdd; i++) {
+        ;(state.components['crowd'] as Crowd).addPedestrian(mouseX, mouseY)
       }
+      actions.setNumOfPedestrians(
+        (state.components['crowd'] as Crowd).numOfPedestrians
+      )
     }
     return
   }

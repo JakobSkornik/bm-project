@@ -1,7 +1,7 @@
 import p5Types from 'p5'
-import P5Component, { P5ComponentParams } from '..'
+import P5Component from '..'
 
-export type GridParams = P5ComponentParams & {
+export type GridParams = {
   w: number
   h: number
 }
@@ -12,7 +12,7 @@ export default class Grid extends P5Component {
   h: number
 
   constructor(params: GridParams) {
-    super(params as P5ComponentParams)
+    super()
 
     this.w = params.w
     this.h = params.h
@@ -31,11 +31,14 @@ export default class Grid extends P5Component {
     this.w = p5.width
     this.h = p5.height
 
-    const newRow = (row: boolean[]) => Array.from({ length: this.w }, (_, i) => {
-      return i < row.length ? row[i] : val
-    });
+    const newRow = (row: boolean[]) =>
+      Array.from({ length: this.w }, (_, i) => {
+        return i < row.length ? row[i] : val
+      })
     this.tiles = Array.from({ length: this.h }, (_, i) => {
-      return i < this.tiles.length ? newRow(this.tiles[i]) : Array.from({ length: this.w }, () => val);
-    });
+      return i < this.tiles.length
+        ? newRow(this.tiles[i])
+        : Array.from({ length: this.w }, () => val)
+    })
   }
 }

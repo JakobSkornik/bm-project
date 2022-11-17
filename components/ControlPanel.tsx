@@ -1,7 +1,7 @@
-import Button from './Button'
-
 import { memo, MouseEvent, useEffect, useState } from 'react'
-import { useControlPanelContext } from '../context'
+
+import Button from './Button'
+import useStore from '../store'
 
 const sx = {
   ctrlPanel: {
@@ -11,54 +11,41 @@ const sx = {
     alignItems: 'center',
     backgroundColor: 'darkgray',
     backdropFilter: 'blur(3px)',
-    borderRadius: '20px',
+    borderRadius: '30vh',
     padding: '5px',
-    boxShadow: `0 0 30px 1px rgba(200, 200, 200, 0.2), 0 0 iconSizepx 10px darkgray`,
+    boxShadow: `0 0 30px 1px rgba(200, 200, 200, 0.2), 0 0 40px 10px darkgray`,
   },
   btn: {
-    width: '60px',
-    height: '60px',
+    width: '5vh',
+    height: '5vh',
     backgroundColor: 'rgba(0, 0, 0, 0)',
     borderColor: 'rgba(0, 0, 0, 0)',
     borderRadius: '40%',
     transition: 'all 0.1s ease-in-out',
   },
   btnActive: {
-    width: '60px',
-    height: '60px',
+    width: '5vh',
+    height: '5vh',
     backgroundColor: 'rgba(100, 100, 100, .4)',
     borderColor: 'rgba(0, 0, 0, 0)',
     boxShadow: `0 0 30px 1px rgba(200, 200, 200, 0.5), 0 0 4px 4px rgba(0, 0, 0, 0.4)`,
   },
   hoverContainer: {
-    position: 'absolute' as 'absolute',
-    borderRadius: '30%',
+    position: 'fixed' as 'fixed',
+    borderRadius: '30vh',
     zIndex: '-1',
   },
 }
 
 const ControlPanel = () => {
-  const {
-    addNumber,
-    clear,
-    pause,
-    setAddNumber,
-    setPause,
-    showControlPanel,
-    showDestination,
-    showNeighbourhood,
-    onClear,
-    toggleShowControlPanel,
-    toggleShowDestination,
-    toggleShowNeighbourhood,
-  } = useControlPanelContext()
+  const [state, actions] = useStore()
   const [mobile, setMobile] = useState(false)
 
   useEffect(() => {
     setMobile(window.innerWidth < window.innerHeight)
 
     const timeId = setTimeout(() => {
-      toggleShowControlPanel(false)
+      actions.setShowCtrlPanel(false)
     }, 5000)
 
     return () => {
@@ -67,58 +54,46 @@ const ControlPanel = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const onToggleDestination = () => {
-    toggleShowDestination()
-  }
-
-  const onToggleNeighbourhood = () => {
-    toggleShowNeighbourhood()
-  }
-
   const openCtrlPanel = () => {
-    toggleShowControlPanel(true)
+    actions.setShowCtrlPanel(true)
   }
 
   const closeCtrlPanel = () => {
-    toggleShowControlPanel(false)
+    actions.setShowCtrlPanel(false)
   }
 
   const add = (e: MouseEvent<HTMLButtonElement>) => {
-    setAddNumber(+e.currentTarget.value)
+    actions.setPedestriansToAdd(+e.currentTarget.value)
   }
 
-  const ctrlPanelWidth = 400
-  const ctrlPanelHeight = 80
-  const iconSize = 40
-
   const desktopLayout = {
-    height: ctrlPanelHeight + 'px',
-    width: ctrlPanelWidth + 'px',
+    height: '9vh',
+    width: '50vw',
     flexDirection: 'row' as 'row',
-    left: `calc(50vw - 200px)`,
-    top: showControlPanel ? 'calc(100vh - 90px)' : '100vh',
+    left: '25vw',
+    top: state.showCtrlPanel ? '90vh' : '100vh',
     transition: 'top 0.2s ease-in-out',
   }
 
   const mobileLayout = {
-    height: ctrlPanelWidth + 'px',
-    width: ctrlPanelHeight + 'px',
+    height: '50vh',
+    width: '9vw',
     flexDirection: 'column' as 'column',
-    top: `calc(50vh - ${ctrlPanelWidth / 2}px)`,
-    left: showControlPanel ? 'calc(100vw - 90px)' : '100vw',
+    top: '25vh',
+    left: state.showCtrlPanel ? '90vw' : '100vw',
     transition: 'left 0.2s ease-in-out',
   }
 
   const desktopHover = {
-    height: `${ctrlPanelHeight + 100}px`,
-    width: `${ctrlPanelWidth + 100}px`,
-    left: `-${100 / 2}px`,
+    height: '30vh',
+    width: '60vw',
+    left: '-5vw',
   }
 
   const mobileHover = {
-    top: `-${ctrlPanelHeight / 2}px`,
-    height: `${ctrlPanelWidth + 100}px`,
-    width: `${ctrlPanelHeight + 100}px`,
+    height: '60vh',
+    width: '30vw',
+    top: '-5vh',
   }
 
   return (
@@ -135,76 +110,89 @@ const ControlPanel = () => {
           ...sx.hoverContainer,
           ...(mobile ? mobileHover : desktopHover),
         }}
+        onMouseDown={openCtrlPanel}
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
       ></div>
       <Button
-        style={pause ? { ...sx.btn, ...sx.btnActive } : sx.btn}
+        style={state.pause ? { ...sx.btn, ...sx.btnActive } : sx.btn}
         text=""
         value="pause"
-        onClick={setPause}
+        onClick={actions.togglePause}
         icon="pause.svg"
-        iconSize={iconSize - 10}
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
       />
       <Button
-        style={clear ? { ...sx.btn, ...sx.btnActive } : sx.btn}
+        style={state.clear ? { ...sx.btn, ...sx.btnActive } : sx.btn}
         text=""
         value="clear"
-        onClick={onClear}
+        onClick={() => actions.setClear(true)}
         icon="clear.svg"
-        iconSize={clear ? iconSize - 5 : iconSize}
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
       />
       <Button
-        style={addNumber == 1 ? { ...sx.btn, ...sx.btnActive } : sx.btn}
+        style={
+          state.pedestriansToAdd == 1 ? { ...sx.btn, ...sx.btnActive } : sx.btn
+        }
         text=""
         value="1"
         onClick={add}
         icon="plus-one.svg"
-        iconSize={iconSize}
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
       />
       <Button
-        style={addNumber == 10 ? { ...sx.btn, ...sx.btnActive } : sx.btn}
+        style={
+          state.pedestriansToAdd == 10 ? { ...sx.btn, ...sx.btnActive } : sx.btn
+        }
         text=""
         value="10"
         onClick={add}
         icon="plus-ten.svg"
-        iconSize={iconSize}
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
       />
       <Button
-        style={addNumber == 100 ? { ...sx.btn, ...sx.btnActive } : sx.btn}
+        style={
+          state.pedestriansToAdd == 100
+            ? { ...sx.btn, ...sx.btnActive }
+            : sx.btn
+        }
         text=""
         value="100"
         onClick={add}
         icon="plus-100.svg"
-        iconSize={iconSize}
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
       />
       <Button
-        style={showDestination ? { ...sx.btn, ...sx.btnActive } : sx.btn}
+        style={state.showDestination ? { ...sx.btn, ...sx.btnActive } : sx.btn}
         text=""
         value="destination"
-        onClick={onToggleDestination}
+        onClick={actions.toggleShowDestination}
         icon="flag.svg"
-        iconSize={iconSize - 5}
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
       />
       <Button
-        style={showNeighbourhood ? { ...sx.btn, ...sx.btnActive } : sx.btn}
+        style={
+          state.showNeighbourhood ? { ...sx.btn, ...sx.btnActive } : sx.btn
+        }
         text=""
         value="neighbourhood"
-        onClick={onToggleNeighbourhood}
+        onClick={actions.toggleShowNeighbourhood}
         icon="radar.svg"
-        iconSize={iconSize}
+        onMouseEnter={openCtrlPanel}
+        onMouseLeave={closeCtrlPanel}
+      />
+      <Button
+        style={state.showVelocity ? { ...sx.btn, ...sx.btnActive } : sx.btn}
+        text=""
+        value="velocity"
+        onClick={actions.toggleShowVelocity}
+        icon="arrow.svg"
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
       />

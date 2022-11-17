@@ -1,8 +1,6 @@
 import '../styles/globals.css'
 import type { AppProps } from 'next/app'
 import { useEffect, useState } from 'react'
-import ControlPanelProvider from '../context/controlPanel'
-import { ControlPanelContextType } from '../types'
 
 /**
  * Default App Wrapper
@@ -32,12 +30,6 @@ const sx = {
 }
 
 export default function App({ Component, pageProps }: AppProps) {
-  const [clear, onClear] = useState(false)
-  const [ctrlPanel, toggleCtrlPanel] = useState(true)
-  const [destination, toggleDestination] = useState(false)
-  const [neighbourhood, toggleNeighbourhood] = useState(false)
-  const [pause, setPause] = useState(false)
-  const [pedestrians, setPedestrians] = useState(1)
   const [showMsg, setShowMsg] = useState(true)
 
   useEffect(() => {
@@ -51,53 +43,8 @@ export default function App({ Component, pageProps }: AppProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const updateControlPanel = (show: boolean) => {
-    toggleCtrlPanel(show)
-  }
-
-  const updateDestination = () => {
-    toggleDestination(!destination)
-  }
-
-  const updateNeighbourhood = () => {
-    toggleNeighbourhood(!neighbourhood)
-  }
-
-  const setNewAddNumber = (num: number) => {
-    setPedestrians(num)
-  }
-
-  const togglePause = () => {
-    setPause(!pause)
-  }
-
-  const clearCanvas = () => {
-    const timeId = setTimeout(() => {
-      onClear(!clear)
-    }, 100)
-
-    return () => {
-      clearTimeout(timeId)
-    }
-  }
-
-  const controlPanelContext = {
-    addNumber: pedestrians,
-    clear: clear,
-    pause: pause,
-    setAddNumber: setNewAddNumber,
-    setPause: togglePause,
-    showControlPanel: ctrlPanel,
-    showDestination: destination,
-    showNeighbourhood: neighbourhood,
-    onClear: clearCanvas,
-    toggleShowControlPanel: updateControlPanel,
-    toggleShowDestination: updateDestination,
-    toggleShowNeighbourhood: updateNeighbourhood,
-  } as ControlPanelContextType
-
   return (
-    <ControlPanelProvider value={controlPanelContext}>
+    <>
       <div style={{ ...sx.welcomeMessage, opacity: showMsg ? '0.9' : '0' }}>
         <h1>press SPACEBAR to spawn more humaboids</h1>
       </div>
@@ -105,6 +52,6 @@ export default function App({ Component, pageProps }: AppProps) {
         <h2>modify scene with control panel</h2>
       </div>
       <Component {...pageProps} />
-    </ControlPanelProvider>
+    </>
   )
 }

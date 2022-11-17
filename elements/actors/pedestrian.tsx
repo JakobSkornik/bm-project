@@ -1,15 +1,17 @@
 import p5Types from 'p5'
 
+import Crowd from './crowd'
 import Grid from '../static/grid'
-import P5Component, { P5ComponentParams } from '..'
+import P5Component from '..'
 import { getRandomInt } from '../hooks/getRandomInt'
 import { getRandomChoice } from '../hooks/getRandomChoice'
-import { AppConfig } from '../../types'
-import Crowd from './crowd'
 import { getDistance } from '../hooks/getDistance'
+import { State } from '../../store'
+import { Images } from '../../types'
 
-export type PedestrianParams = P5ComponentParams & {
+export type PedestrianParams = {
   grid: Grid
+  images: Images
   movementSpeed: number
   x?: number
   y?: number
@@ -18,6 +20,7 @@ export type PedestrianParams = P5ComponentParams & {
 
 export default class Pedestrian extends P5Component {
   grid: Grid
+  images: Images
   movementSpeed: number
   velocity: number[]
   destination: number[] = []
@@ -30,8 +33,9 @@ export default class Pedestrian extends P5Component {
   playbackSpeed: number = 0.2
 
   constructor(params: PedestrianParams) {
-    super(params as P5ComponentParams)
+    super()
     this.grid = params.grid
+    this.images = params.images
     this.movementSpeed = params.movementSpeed ?? 1
 
     if (this.valid(params)) {
@@ -45,9 +49,9 @@ export default class Pedestrian extends P5Component {
     this.velocity = this.getVelocity()
   }
 
-  show = (p5: p5Types, appConfig?: AppConfig) => {
+  show = (p5: p5Types, state?: State) => {
     p5.image(
-      this.assets['man'],
+      this.images['man'],
       Math.round(this.x) - 20,
       Math.round(this.y) - 33,
       50,
@@ -58,9 +62,9 @@ export default class Pedestrian extends P5Component {
     p5.fill(0, 0, 0, 50)
     p5.ellipse(this.x, this.y, 20, 5)
 
-    if (appConfig) {
+    if (state) {
       // Show destination
-      if (appConfig.destination) {
+      if (state.showDestination) {
         p5.fill(0)
         p5.circle(this.destination[0], this.destination[1], 10)
 
@@ -71,14 +75,14 @@ export default class Pedestrian extends P5Component {
       }
 
       // Show neighbourhood radius
-      if (appConfig.neighbourhood) {
+      if (state.showNeighbourhood) {
         p5.noStroke()
         p5.fill(200, 100, 100, 50)
         p5.circle(this.x, this.y, this.neighbourhoodRadius * 2)
       }
 
       // Show velocity
-      if (appConfig.showVelocity) {
+      if (state.showVelocity) {
         p5.strokeWeight(1)
         p5.stroke(100)
         p5.line(
@@ -91,7 +95,9 @@ export default class Pedestrian extends P5Component {
         p5.fill(100)
         p5.circle(
           this.x + this.velocity[0] * 50,
-          this.y + this.velocity[1] * 50, 3)
+          this.y + this.velocity[1] * 50,
+          3,
+        )
       }
     }
   }

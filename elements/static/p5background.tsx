@@ -1,11 +1,9 @@
 import p5Types from 'p5'
-import P5Component, { P5ComponentParams } from '..'
-
-export type BackgroundParams = P5ComponentParams & {}
+import P5Component from '..'
 
 export default class P5Background extends P5Component {
-  constructor(params: BackgroundParams) {
-    super(params as P5ComponentParams)
+  constructor() {
+    super()
   }
 
   show = (p5: p5Types) => {

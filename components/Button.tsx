@@ -5,13 +5,16 @@ import { ButtonProps } from '../types'
 
 const sx = {
   button: {
+    position: 'relative' as 'relative',
     fontSize: '20px',
     borderRadius: '2px',
     border: '1px solid #E0E0E060',
     color: 'green',
     outline: 'none',
   },
-  icon: {},
+  icon: {
+    transform: 'scale(0.8)'
+  },
 }
 
 const Button = (props: ButtonProps) => {
@@ -41,16 +44,14 @@ const Button = (props: ButtonProps) => {
       onMouseLeave={mouseLeave}
     >
       {props.icon && (
-        <span>
-          <Image
-            src={`/icons/${props.icon}`}
-            alt="BtnIcon"
-            width={props.iconSize ?? 30}
-            height={props.iconSize ?? 30}
-            style={sx.icon}
-            priority
-          />
-        </span>
+        <Image
+          src={`/icons/${props.icon}`}
+          alt="BtnIcon"
+          fill
+          objectFit="cover"
+          style={sx.icon}
+          priority
+        />
       )}
       <span>{props.text}</span>
     </button>

@@ -1,7 +1,7 @@
 import p5Types from 'p5'
-import P5Component, { P5ComponentParams } from '..'
+import P5Component from '..'
 
-export type FPSCounterParams = P5ComponentParams & {
+export type FPSCounterParams = {
   x: number
   y: number
 }
@@ -11,7 +11,7 @@ export default class FPSCounter extends P5Component {
   y: number
 
   constructor(params: FPSCounterParams) {
-    super(params as P5ComponentParams)
+    super()
     this.x = params.x
     this.y = params.y
   }
