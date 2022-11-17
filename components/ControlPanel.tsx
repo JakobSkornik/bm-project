@@ -16,16 +16,16 @@ const sx = {
     boxShadow: `0 0 30px 1px rgba(200, 200, 200, 0.2), 0 0 40px 10px darkgray`,
   },
   btn: {
-    width: '5vh',
-    height: '5vh',
+    width: '6vh',
+    height: '6vh',
     backgroundColor: 'rgba(0, 0, 0, 0)',
     borderColor: 'rgba(0, 0, 0, 0)',
     borderRadius: '40%',
     transition: 'all 0.1s ease-in-out',
   },
   btnActive: {
-    width: '5vh',
-    height: '5vh',
+    width: '6vh',
+    height: '6vh',
     backgroundColor: 'rgba(100, 100, 100, .4)',
     borderColor: 'rgba(0, 0, 0, 0)',
     boxShadow: `0 0 30px 1px rgba(200, 200, 200, 0.5), 0 0 4px 4px rgba(0, 0, 0, 0.4)`,
@@ -68,18 +68,18 @@ const ControlPanel = () => {
 
   const desktopLayout = {
     height: '9vh',
-    width: '50vw',
+    width: '40vw',
     flexDirection: 'row' as 'row',
-    left: '25vw',
+    left: '30vw',
     top: state.showCtrlPanel ? '90vh' : '100vh',
     transition: 'top 0.2s ease-in-out',
   }
 
   const mobileLayout = {
-    height: '50vh',
+    height: '40vh',
     width: '9vw',
     flexDirection: 'column' as 'column',
-    top: '25vh',
+    top: '30vh',
     left: state.showCtrlPanel ? '90vw' : '100vw',
     transition: 'left 0.2s ease-in-out',
   }

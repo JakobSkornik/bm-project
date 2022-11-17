@@ -1,34 +1,28 @@
 import p5Types from 'p5'
 import P5Component from '..'
 
-export type FPSCounterParams = {
-  x: number
-  y: number
-}
-
 export default class FPSCounter extends P5Component {
-  x: number
-  y: number
-
-  constructor(params: FPSCounterParams) {
+  constructor() {
     super()
-    this.x = params.x
-    this.y = params.y
   }
 
   show = (p5: p5Types) => {
-    const w = 60
-    const h = 22
+    const w = p5.width / 20
+    const h = p5.height / 26
+    const x = p5.width - 1.2 * w
+    const y = 0.5 * h
+    const textSize = 0.6 * h
+
     p5.noStroke()
     p5.fill(236, 236, 236, 100)
-    p5.rect(this.x, this.y, w, h, 2)
+    p5.rect(x, y, w, h, 2)
 
     p5.fill(0)
-    p5.text( `FPS: ${Math.round(p5.frameRate())}`, this.x + 5, this.y + 15)
-  }
-
-  resize = (p5: p5Types) => {
-    this.x = p5.width - 65
-    this.y = 5
+    p5.textSize(textSize)
+    p5.text(
+      `FPS: ${Math.round(p5.frameRate())}`,
+      x + 0.05 * w,
+      y + textSize * 1.15,
+    )
   }
 }

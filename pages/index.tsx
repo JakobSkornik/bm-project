@@ -7,11 +7,11 @@ const Sketch = dynamic(() => import('react-p5').then((mod) => mod.default), {
 
 import Background from '../components/Background'
 import ControlPanel from '../components/ControlPanel'
+import FPSCounter from '../elements/ui/fpsCounter'
 import PedestrianCounter from '../elements/ui/pedestrianCounter'
 import P5Background from '../elements/static/p5background'
 import useStore from '../store'
 import Crowd, { CrowdParams } from '../elements/actors/crowd'
-import FPSCounter from '../elements/ui/fpsCounter'
 import Grid, { GridParams } from '../elements/static/grid'
 import { Components, Images } from '../types'
 
@@ -89,15 +89,9 @@ const Index = () => {
       grid: components['grid'],
     } as CrowdParams)
 
-    components['fps'] = new FPSCounter({
-      x: p5.width - 65,
-      y: 5,
-    })
+    components['fps'] = new FPSCounter()
 
-    components['n-counter'] = new PedestrianCounter({
-      x: p5.width - 60,
-      y: 30,
-    })
+    components['n-counter'] = new PedestrianCounter()
 
     actions.setComponents(components)
     actions.setImages(images)
@@ -123,8 +117,6 @@ const Index = () => {
     }
     p5.resizeCanvas(window.innerWidth, window.innerHeight)
     ;(state.components['grid'] as Grid).resize(p5)
-    ;(state.components['fps'] as FPSCounter).resize(p5)
-    ;(state.components['n-counter'] as PedestrianCounter).resize(p5)
   }
 
   // Called in render loop
