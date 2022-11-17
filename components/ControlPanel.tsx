@@ -41,7 +41,9 @@ const ControlPanel = () => {
   const {
     addNumber,
     clear,
+    pause,
     setAddNumber,
+    setPause,
     showControlPanel,
     showDestination,
     showNeighbourhood,
@@ -137,6 +139,16 @@ const ControlPanel = () => {
         onMouseLeave={closeCtrlPanel}
       ></div>
       <Button
+        style={pause ? { ...sx.btn, ...sx.btnActive } : sx.btn}
+        text=""
+        value="pause"
+        onClick={setPause}
+        icon="pause.svg"
+        iconSize={iconSize - 10}
+        onMouseEnter={openCtrlPanel}
+        onMouseLeave={closeCtrlPanel}
+      />
+      <Button
         style={clear ? { ...sx.btn, ...sx.btnActive } : sx.btn}
         text=""
         value="clear"
@@ -182,7 +194,7 @@ const ControlPanel = () => {
         value="destination"
         onClick={onToggleDestination}
         icon="flag.svg"
-        iconSize={iconSize}
+        iconSize={iconSize - 5}
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
       />

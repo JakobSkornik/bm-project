@@ -14,6 +14,8 @@ import Crowd, { CrowdParams } from '../elements/actors/crowd'
 import Grid, { GridParams } from '../elements/static/grid'
 import P5Background, { BackgroundParams } from '../elements/static/p5background'
 import { useControlPanelContext } from '../context'
+import FPSCounter from '../elements/ui/fpsCounter'
+import PedestrianCounter from '../elements/ui/pedestrianCounter'
 
 /**
  * Main component responsible for
@@ -53,6 +55,7 @@ const Index = () => {
   const {
     clear,
     addNumber,
+    pause,
     showDestination,
     showNeighbourhood,
     onClear,
@@ -98,6 +101,18 @@ const Index = () => {
       grid: components['grid'],
     } as CrowdParams)
 
+    components['fps'] = new FPSCounter({
+      assets: assets,
+      x: p5.width - 65,
+      y: 5,
+    })
+
+    components['n-counter'] = new PedestrianCounter({
+      assets: assets,
+      x: p5.width - 60,
+      y: 30,
+    })
+
     setComponents(components)
   }
 
@@ -126,6 +141,7 @@ const Index = () => {
   // Called in render loop
   const draw = (p5: p5Types) => {
     if (clear) {
+      components['background'].show(p5)
       loadAssets(p5)
       onClear()
     }
@@ -133,11 +149,20 @@ const Index = () => {
     let appConfig = {
       destination: showDestination,
       neighbourhood: showNeighbourhood,
+      numOfPedestrians: (components['crowd'] as Crowd).numOfPedestrians,
     } as AppConfig
+
+    if (pause) {
+      components['fps'].show(p5)
+      components['n-counter'].show(p5, appConfig)
+      return
+    }
 
     components['background'].show(p5)
     components['grid'].show(p5)
     components['crowd'].show(p5, appConfig)
+    components['fps'].show(p5)
+    components['n-counter'].show(p5, appConfig)
   }
 
   // Triggers on button press

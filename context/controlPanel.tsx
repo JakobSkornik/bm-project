@@ -11,7 +11,9 @@ export const ControlPanelContext = createContext<ControlPanelContextType>({
   clear: false,
   onClear: () => {},
   addNumber: 0,
-  setAddNumber: () => {}
+  setAddNumber: () => {},
+  pause: false,
+  setPause: () => {},
 })
 
 const ControlPanelProvider: FC<ControlPanelProps> = (

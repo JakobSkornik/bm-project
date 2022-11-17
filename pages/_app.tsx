@@ -32,11 +32,12 @@ const sx = {
 }
 
 export default function App({ Component, pageProps }: AppProps) {
-  const [pedestrians, setPedestrians] = useState(1)
   const [clear, onClear] = useState(false)
   const [ctrlPanel, toggleCtrlPanel] = useState(true)
   const [destination, toggleDestination] = useState(false)
   const [neighbourhood, toggleNeighbourhood] = useState(false)
+  const [pause, setPause] = useState(false)
+  const [pedestrians, setPedestrians] = useState(1)
   const [showMsg, setShowMsg] = useState(true)
 
   useEffect(() => {
@@ -66,6 +67,10 @@ export default function App({ Component, pageProps }: AppProps) {
     setPedestrians(num)
   }
 
+  const togglePause = () => {
+    setPause(!pause)
+  }
+
   const clearCanvas = () => {
     const timeId = setTimeout(() => {
       onClear(!clear)
@@ -79,7 +84,9 @@ export default function App({ Component, pageProps }: AppProps) {
   const controlPanelContext = {
     addNumber: pedestrians,
     clear: clear,
+    pause: pause,
     setAddNumber: setNewAddNumber,
+    setPause: togglePause,
     showControlPanel: ctrlPanel,
     showDestination: destination,
     showNeighbourhood: neighbourhood,

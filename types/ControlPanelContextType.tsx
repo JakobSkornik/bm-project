@@ -9,4 +9,6 @@ export type ControlPanelContextType = {
   onClear: () => void
   addNumber: number
   setAddNumber: (num: number) => void
+  pause: boolean
+  setPause: () => void
 }
