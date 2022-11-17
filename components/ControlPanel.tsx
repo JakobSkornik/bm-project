@@ -12,6 +12,7 @@ const sx = {
     backgroundColor: 'darkgray',
     backdropFilter: 'blur(3px)',
     borderRadius: '20px',
+    padding: '5px',
     boxShadow: `0 0 30px 1px rgba(200, 200, 200, 0.2), 0 0 iconSizepx 10px darkgray`,
   },
   btn: {
