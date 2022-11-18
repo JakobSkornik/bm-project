@@ -16,7 +16,7 @@ export default class Metrics extends P5Component {
   showFPS = (p5: p5Types) => {
     const w = p5.width / 20
     const h = p5.height / 26
-    const x = p5.width - 1.2 * w
+    const x = p5.width - 1.5 * w
     const y = 0.5 * h
     const textSize = 0.6 * h
 
@@ -33,7 +33,7 @@ export default class Metrics extends P5Component {
   showNCount = (p5: p5Types, state: State) => {
     const w = p5.width / 20
     const h = p5.height / 26
-    const x = p5.width - 1.2 * w
+    const x = p5.width - 1.5 * w
     const y = 1.6 * h
     const textSize = 0.6 * h
 
@@ -46,7 +46,7 @@ export default class Metrics extends P5Component {
   showPlaybackSpeed = (p5: p5Types, state: State) => {
     const w = p5.width / 20
     const h = p5.height / 26
-    const x = p5.width - 1.2 * w
+    const x = p5.width - 1.5 * w
     const y = 2.7 * h
     const textSize = 0.6 * h
 

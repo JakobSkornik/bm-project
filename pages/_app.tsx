@@ -55,7 +55,7 @@ export default function App({ Component, pageProps }: AppProps) {
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(0.2)
   const [showCtrlPanel, setShowCtrlPanel] = useState<boolean>(false)
   const [showDestination, setShowDestination] = useState<boolean>(false)
-  const [showNeighbourhood, setShowNeighbourhood] = useState<boolean>(false)
+  const [showProtectedRange, setShowProtectedRange] = useState<boolean>(false)
   const [showVelocity, setShowVelocity] = useState<boolean>(false)
 
   const appContext = {
@@ -69,7 +69,7 @@ export default function App({ Component, pageProps }: AppProps) {
       playbackSpeed: playbackSpeed,
       showCtrlPanel: showCtrlPanel,
       showDestination: showDestination,
-      showNeighbourhood: showNeighbourhood,
+      showProtectedRange: showProtectedRange,
       showVelocity: showVelocity,
     },
     actions: (key: string, val?: any) => {
@@ -123,8 +123,8 @@ export default function App({ Component, pageProps }: AppProps) {
           setShowDestination(!showDestination)
           break
         }
-        case 'showNeighbourhood': {
-          setShowNeighbourhood(!showNeighbourhood)
+        case 'showProtectedRange': {
+          setShowProtectedRange(!showProtectedRange)
           break
         }
         case 'showVelocity': {

@@ -199,11 +199,11 @@ const ControlPanel = () => {
       />
       <Button
         style={
-          state.showNeighbourhood ? { ...sx.btn, ...sx.btnActive } : sx.btn
+          state.showProtectedRange ? { ...sx.btn, ...sx.btnActive } : sx.btn
         }
         text=""
-        value="neighbourhood"
-        onClick={() => actions('showNeighbourhood')}
+        value="protectedRange"
+        onClick={() => actions('showProtectedRange')}
         icon="radar.svg"
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}

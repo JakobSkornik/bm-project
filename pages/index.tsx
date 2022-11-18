@@ -146,14 +146,12 @@ const Index = () => {
 
   // Triggers on button press
   const onKeyPressed = (p5: p5Types) => {
-    const mouseX = p5.mouseX
-    const mouseY = p5.mouseY
-
     if (p5.key == ' ') {
-      for (let i = 0; i < state.pedestriansToAdd; i++) {
-        ;(state.components['crowd'] as Crowd).addPedestrian(mouseX, mouseY)
-      }
-      actions("numOfPedestrians", state.components['crowd'].numOfPedestrians as Crowd)
+      actions(
+        'numOfPedestrians',
+        (state.components['crowd'].pedestrians.length +
+          state.pedestriansToAdd) as Crowd,
+      )
     }
     return
   }

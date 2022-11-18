@@ -15,7 +15,6 @@ export type CrowdParams = {
 export default class Crowd extends P5Component {
   grid: Grid
   images: Images
-  numOfPedestrians: number
   pedestrians: Pedestrian[] = []
   frame: number = 0
 
@@ -23,46 +22,35 @@ export default class Crowd extends P5Component {
     super()
     this.images = params.images
     this.grid = params.grid
-    this.numOfPedestrians = params.numOfPedestrians
-
-    for (let i = 0; i < this.numOfPedestrians; i++) {
-      this.pedestrians.push(
-        new Pedestrian({
-          grid: this.grid,
-          images: params.images,
-          movementSpeed: getRandomInt(5, 1),
-        } as PedestrianParams),
-      )
-    }
   }
 
   show = (p5: p5Types, state: State) => {
-    for (let i = 0; i < this.numOfPedestrians; i++) {
+    while (this.pedestrians.length < state.numOfPedestrians) {
+      this.addPedestrian([p5.mouseX, p5.mouseY])
+    }
+    for (let i = 0; i < this.pedestrians.length; i++) {
       this.pedestrians[i].show(p5, state)
     }
     this.move(state)
   }
 
   move = (state?: State) => {
-    for (let i = 0; i < this.numOfPedestrians; i++) {
+    for (let i = 0; i < this.pedestrians.length; i++) {
       /**
        * TODO
        * Extend appconfig to contain boolean for toggling neighbours
        */
 
-      this.pedestrians[i].getNeighbours(this)
       this.pedestrians[i].move()
     }
   }
 
-  addPedestrian = (x: number, y: number) => {
-    this.numOfPedestrians++
-
+  addPedestrian = (loc?: number[]) => {
     this.pedestrians.push(
       new Pedestrian({
-        x: x,
-        y: y,
-        assets: this.images,
+        x: loc ? loc[0] : undefined,
+        y: loc ? loc[1] : undefined,
+        crowd: this,
         grid: this.grid,
         images: this.images,
         movementSpeed: getRandomInt(5, 1),
