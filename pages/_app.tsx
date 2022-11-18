@@ -45,10 +45,10 @@ export default function App({ Component, pageProps }: AppProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const [bounds, setBounds] = useState<boolean>(false)
   const [clear, setClear] = useState<boolean>(false)
   const [components, setComponents] = useState<Components>({})
   const [images, setImages] = useState<Images>({})
-  const [increaseSpeed, setIncreaseSpeed] = useState<boolean>(false)
   const [numOfPedestrians, setNumOfPedestrians] = useState<number>(1)
   const [pause, setPause] = useState<boolean>(false)
   const [pedestriansToAdd, setPedestriansToAdd] = useState<number>(1)
@@ -60,6 +60,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   const appContext = {
     state: {
+      bounds: bounds,
       clear: clear,
       components: components as Components,
       images: images as Images,
@@ -74,15 +75,12 @@ export default function App({ Component, pageProps }: AppProps) {
     },
     actions: (key: string, val?: any) => {
       switch (key) {
+        case 'bounds': {
+          setBounds(!bounds)
+          break
+        }
         case 'clear': {
-          const timeId = setTimeout(() => {
-            setClear(val)
-          }, 50)
-
-          return () => {
-            clearTimeout(timeId)
-          }
-
+          setClear(val)
           break
         }
         case 'components': {
@@ -94,13 +92,7 @@ export default function App({ Component, pageProps }: AppProps) {
           break
         }
         case 'playbackSpeed': {
-          const timeId = setTimeout(() => {
-            setPlaybackSpeed(playbackSpeed + val)
-          }, 50)
-
-          return () => {
-            clearTimeout(timeId)
-          }
+          setPlaybackSpeed(playbackSpeed + val)
           break
         }
         case 'numOfPedestrians': {

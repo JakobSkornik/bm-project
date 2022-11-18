@@ -29,11 +29,14 @@ export default class Pedestrian extends P5Component {
   gender: string = 'man'
 
   // TODO MAKE THESE CONTEXT VARIABLES WITH BUTTONS IN CTRL PANEL
-  protectedRangeRadius: number = 50
-  visualRangeRadius: number = 80
-  alignmentFactor: number = 1
-  separationFactor: number = 0.6
-  cohesionFactor: number = 0.1
+  protectedRangeRadius: number = 30
+  visualRangeRadius: number = 50
+  alignmentFactor: number = 0.01
+  separationFactor: number = 0.5
+  cohesionFactor: number = 0.001
+  bounds: boolean = false
+  turnFactor: number = 1
+  margin: number[] = []
 
   constructor(params: PedestrianParams) {
     super()
@@ -57,6 +60,11 @@ export default class Pedestrian extends P5Component {
   }
 
   show = (p5: p5Types, state: State) => {
+    const mW = p5.width / 20
+    const mH = p5.height / 20
+    this.margin = [mW, p5.width - mW, mH, p5.height - mH]
+    this.bounds = state.bounds
+
     p5.image(
       state!.images[this.gender],
       Math.round(this.x) - 20,
@@ -156,60 +164,46 @@ export default class Pedestrian extends P5Component {
     const inProtected = this.getInProtectedRange()
     const inPreferred = this.getInPreferredRange()
 
+    let base = this.velocity
+      ? [
+          this.velocity[0] + getRandomInt(10) / 10,
+          this.velocity[1] + getRandomInt(10) / 10,
+        ]
+      : [getRandomInt(10), getRandomInt(10)]
+
     // BASE VELOCITY
-    const x1 = this.x
-    const y1 = this.y
-    const x2 = this.destination[0]
-    const y2 = this.destination[1]
-
-    const dx = x2 - x1
-    const dy = y2 - y1
-    const nFactor = Math.sqrt(dx * dx + dy * dy)
-
-    const base = [dx / nFactor, dy / nFactor]
-    let separation = [0, 0]
-    let alignment = [0, 0]
-    let cohesion = [0, 0]
-
-    // SEPARATION VELOCITY
-    if (inProtected.length > 0) {
-      let [sx, sy, n] = [0, 0, 0]
-      for (let i = 0; i < inProtected.length; i++) {
-        sx += inProtected[i].x - this.x
-        sy += inProtected[i].y - this.y
-        const d = getDistance(
-          this.x,
-          this.y,
-          inProtected[i].x,
-          inProtected[i].y,
-        )
-        sx = sx * (1 - d / this.protectedRangeRadius)
-        sx = sy * (1 - d / this.protectedRangeRadius)
-        n++
+    if (this.bounds) {
+      if (this.x < this.margin[0]) {
+        base[0] += this.turnFactor
       }
-      let sf = Math.sqrt(sx * sx + sy * sy)
-      sx /= n * sf
-      sy /= n * sf
-      separation = [sx, sy]
+      if (this.x > this.margin[1]) {
+        base[0] -= this.turnFactor
+      }
+      if (this.y < this.margin[2]) {
+        base[1] += this.turnFactor
+      }
+      if (this.y > this.margin[3]) {
+        base[1] -= this.turnFactor
+      }
+      const nFactor = Math.sqrt(base[0] * base[0] + base[1] * base[1])
+      base = [base[0] / nFactor, base[1] / nFactor]
+    } else {
+      const x1 = this.x
+      const y1 = this.y
+      const x2 = this.destination[0]
+      const y2 = this.destination[1]
+
+      const dx = x2 - x1
+      const dy = y2 - y1
+      const nFactor = Math.sqrt(dx * dx + dy * dy)
+
+      base = [dx / nFactor, dy / nFactor]
     }
 
-    // COHESION VELOCITY
-    if (inPreferred.length > 0) {
-      let [cx, cy, n] = [0, 0, 0]
-      for (let i = 0; i < inPreferred.length; i++) {
-        cx += inPreferred[i].x
-        cy += inPreferred[i].y
-        n++
-      }
-      cx /= n
-      cy /= n
+    let alignment = this.getAlignmentVelocity(inPreferred)
+    let separation = this.getSeparationVelocity(inProtected)
+    let cohesion = this.getCohesionVelocity(inPreferred)
 
-      const dx = cx - this.x
-      const dy = cy - this.y
-      let d = Math.sqrt(dx * dx + dy * dy)
-
-      cohesion = [dx / d, dy / d]
-    }
     return [
       base[0] +
         alignment[0] * this.alignmentFactor -
@@ -222,12 +216,74 @@ export default class Pedestrian extends P5Component {
     ]
   }
 
+  getAlignmentVelocity = (inPreferred: Pedestrian[]) => {
+    if (!inPreferred.length) {
+      return [0, 0]
+    }
+
+    let [vx, vy, n] = [0, 0, 0]
+    for (let i = 0; i < inPreferred.length; i++) {
+      vx += inPreferred[i].velocity[0]
+      vy += inPreferred[i].velocity[1]
+      n++
+    }
+    vx /= n
+    vy /= n
+
+    const dx = vx - this.x
+    const dy = vy - this.y
+    let d = Math.sqrt(dx * dx + dy * dy)
+
+    return [dx / d, dy / d]
+  }
+
+  getSeparationVelocity = (inProtected: Pedestrian[]) => {
+    if (!inProtected.length) {
+      return [0, 0]
+    }
+
+    let [sx, sy, n] = [0, 0, 0]
+    for (let i = 0; i < inProtected.length; i++) {
+      sx += inProtected[i].x - this.x
+      sy += inProtected[i].y - this.y
+      const d = getDistance(this.x, this.y, inProtected[i].x, inProtected[i].y)
+      sx = sx * (1 - d / this.protectedRangeRadius)
+      sx = sy * (1 - d / this.protectedRangeRadius)
+      n++
+    }
+    let sf = Math.sqrt(sx * sx + sy * sy)
+    sx /= n * sf
+    sy /= n * sf
+    return [sx, sy]
+  }
+
+  getCohesionVelocity = (inPreferred: Pedestrian[]) => {
+    if (!inPreferred.length) {
+      return [0, 0]
+    }
+
+    let [cx, cy, n] = [0, 0, 0]
+    for (let i = 0; i < inPreferred.length; i++) {
+      cx += inPreferred[i].x
+      cy += inPreferred[i].y
+      n++
+    }
+    cx /= n
+    cy /= n
+
+    const dx = cx - this.x
+    const dy = cy - this.y
+    let d = Math.sqrt(dx * dx + dy * dy)
+
+    return [dx / d, dy / d]
+  }
+
   getInProtectedRange = () => {
     if (!this.velocity) {
       return []
     }
     let inProtected: Pedestrian[] = []
-
+    let preferred: Pedestrian[] = []
     for (let i = 0; i < this.crowd.pedestrians.length; i++) {
       const d = getDistance(
         this.x,
@@ -241,7 +297,7 @@ export default class Pedestrian extends P5Component {
     }
     return inProtected
 
-    // // Filter people going wrong way
+    // Filter people going wrong way
     // for (let i = 0; i < inProtected.length; i++) {
     //   if (this.velocity.length && inProtected[i].velocity.length) {
     //     const firstAngle = Math.atan2(this.velocity[1], this.velocity[0])
@@ -275,7 +331,7 @@ export default class Pedestrian extends P5Component {
     }
     return inVisual
 
-    // // Filter people going wrong way
+    // Filter people going wrong way
     // for (let i = 0; i < inVisual.length; i++) {
     //   if (this.velocity.length && inVisual[i].velocity.length) {
     //     const firstAngle = Math.atan2(this.velocity[1], this.velocity[0])

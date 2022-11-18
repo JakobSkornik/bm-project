@@ -217,6 +217,15 @@ const ControlPanel = () => {
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
       />
+      <Button
+        style={state.bounds ? { ...sx.btn, ...sx.btnActive } : sx.btn}
+        text=""
+        value="bounds"
+        onClick={() => actions('bounds')}
+        icon="bounds.svg"
+        onMouseEnter={openCtrlPanel}
+        onMouseLeave={closeCtrlPanel}
+      />
     </div>
   )
 }

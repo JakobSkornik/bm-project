@@ -53,7 +53,7 @@ export default class Crowd extends P5Component {
         crowd: this,
         grid: this.grid,
         images: this.images,
-        movementSpeed: getRandomInt(5, 1),
+        movementSpeed: 1,
       } as PedestrianParams),
     )
   }
