@@ -13,7 +13,9 @@ const sx = {
     outline: 'none',
   },
   icon: {
-    transform: 'scale(0.8)'
+    objectFit: 'cover' as 'cover',
+    transform: 'scale(0.8)',
+    pointerEvents: 'none' as 'none',
   },
 }
 
@@ -48,8 +50,8 @@ const Button = (props: ButtonProps) => {
           src={`/icons/${props.icon}`}
           alt="BtnIcon"
           fill
-          objectFit="cover"
           style={sx.icon}
+          sizes="width: 100%"
           priority
         />
       )}

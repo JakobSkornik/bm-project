@@ -1,7 +1,6 @@
-import { memo, MouseEvent, useEffect, useState } from 'react'
-
+import { memo, useCallback, useEffect, useState } from 'react'
+import { useGlobalContext } from '../context'
 import Button from './Button'
-import useStore from '../store'
 
 const sx = {
   ctrlPanel: {
@@ -33,19 +32,23 @@ const sx = {
   hoverContainer: {
     position: 'fixed' as 'fixed',
     borderRadius: '30vh',
-    zIndex: '-1',
   },
 }
 
 const ControlPanel = () => {
-  const [state, actions] = useStore()
+  const { state, actions } = useGlobalContext()
   const [mobile, setMobile] = useState(false)
+
+  const handleResize = useCallback(() => {
+    setMobile(window.innerWidth < window.innerHeight)
+  }, [])
 
   useEffect(() => {
     setMobile(window.innerWidth < window.innerHeight)
+    window.addEventListener('resize', handleResize, false)
 
     const timeId = setTimeout(() => {
-      actions.setShowCtrlPanel(false)
+      actions('showCtrlPanel', false)
     }, 5000)
 
     return () => {
@@ -53,18 +56,6 @@ const ControlPanel = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  const openCtrlPanel = () => {
-    actions.setShowCtrlPanel(true)
-  }
-
-  const closeCtrlPanel = () => {
-    actions.setShowCtrlPanel(false)
-  }
-
-  const add = (e: MouseEvent<HTMLButtonElement>) => {
-    actions.setPedestriansToAdd(+e.currentTarget.value)
-  }
 
   const desktopLayout = {
     height: '9vh',
@@ -77,10 +68,10 @@ const ControlPanel = () => {
 
   const mobileLayout = {
     height: '40vh',
-    width: '9vw',
+    width: '9vh',
     flexDirection: 'column' as 'column',
     top: '30vh',
-    left: state.showCtrlPanel ? '90vw' : '100vw',
+    left: state.showCtrlPanel ? 'calc(100vw - 10vh)' : '100vw',
     transition: 'left 0.2s ease-in-out',
   }
 
@@ -94,6 +85,18 @@ const ControlPanel = () => {
     height: '60vh',
     width: '30vw',
     top: '-5vh',
+  }
+
+  const openCtrlPanel = () => {
+    actions('showCtrlPanel', true)
+  }
+
+  const closeCtrlPanel = () => {
+    actions('showCtrlPanel', false)
+  }
+
+  const add = (num: number) => {
+    actions('pedestriansToAdd', num)
   }
 
   return (
@@ -118,7 +121,7 @@ const ControlPanel = () => {
         style={state.pause ? { ...sx.btn, ...sx.btnActive } : sx.btn}
         text=""
         value="pause"
-        onClick={actions.togglePause}
+        onClick={() => actions('pause')}
         icon="pause.svg"
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
@@ -127,7 +130,7 @@ const ControlPanel = () => {
         style={state.clear ? { ...sx.btn, ...sx.btnActive } : sx.btn}
         text=""
         value="clear"
-        onClick={() => actions.setClear(true)}
+        onClick={() => actions('clear', true)}
         icon="clear.svg"
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
@@ -138,7 +141,7 @@ const ControlPanel = () => {
         }
         text=""
         value="1"
-        onClick={add}
+        onClick={() => add(1)}
         icon="plus-one.svg"
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
@@ -149,7 +152,7 @@ const ControlPanel = () => {
         }
         text=""
         value="10"
-        onClick={add}
+        onClick={() => add(10)}
         icon="plus-ten.svg"
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
@@ -162,8 +165,26 @@ const ControlPanel = () => {
         }
         text=""
         value="100"
-        onClick={add}
+        onClick={() => add(100)}
         icon="plus-100.svg"
+        onMouseEnter={openCtrlPanel}
+        onMouseLeave={closeCtrlPanel}
+      />
+      <Button
+        style={sx.btn}
+        text=""
+        value="decreasespeed"
+        onClick={() => actions('playbackSpeed', -0.1)}
+        icon="decrease-speed.svg"
+        onMouseEnter={openCtrlPanel}
+        onMouseLeave={closeCtrlPanel}
+      />
+      <Button
+        style={sx.btn}
+        text=""
+        value="increasespeed"
+        onClick={() => actions('playbackSpeed', 0.1)}
+        icon="increase-speed.svg"
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
       />
@@ -171,7 +192,7 @@ const ControlPanel = () => {
         style={state.showDestination ? { ...sx.btn, ...sx.btnActive } : sx.btn}
         text=""
         value="destination"
-        onClick={actions.toggleShowDestination}
+        onClick={() => actions('showDestination')}
         icon="flag.svg"
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
@@ -182,7 +203,7 @@ const ControlPanel = () => {
         }
         text=""
         value="neighbourhood"
-        onClick={actions.toggleShowNeighbourhood}
+        onClick={() => actions('showNeighbourhood')}
         icon="radar.svg"
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}
@@ -191,7 +212,7 @@ const ControlPanel = () => {
         style={state.showVelocity ? { ...sx.btn, ...sx.btnActive } : sx.btn}
         text=""
         value="velocity"
-        onClick={actions.toggleShowVelocity}
+        onClick={() => actions('showVelocity')}
         icon="arrow.svg"
         onMouseEnter={openCtrlPanel}
         onMouseLeave={closeCtrlPanel}

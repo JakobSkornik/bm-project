@@ -4,8 +4,7 @@ import Grid from '../static/grid'
 import P5Component from '..'
 import Pedestrian, { PedestrianParams } from './pedestrian'
 import { getRandomInt } from '../hooks/getRandomInt'
-import { State } from '../../store'
-import { Images } from '../../types'
+import { Images, State } from '../../types'
 
 export type CrowdParams = {
   grid: Grid
@@ -37,7 +36,7 @@ export default class Crowd extends P5Component {
     }
   }
 
-  show = (p5: p5Types, state?: State) => {
+  show = (p5: p5Types, state: State) => {
     for (let i = 0; i < this.numOfPedestrians; i++) {
       this.pedestrians[i].show(p5, state)
     }

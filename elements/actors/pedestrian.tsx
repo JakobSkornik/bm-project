@@ -6,12 +6,10 @@ import P5Component from '..'
 import { getRandomInt } from '../hooks/getRandomInt'
 import { getRandomChoice } from '../hooks/getRandomChoice'
 import { getDistance } from '../hooks/getDistance'
-import { State } from '../../store'
-import { Images } from '../../types'
+import { Images, State } from '../../types'
 
 export type PedestrianParams = {
   grid: Grid
-  images: Images
   movementSpeed: number
   x?: number
   y?: number
@@ -20,13 +18,13 @@ export type PedestrianParams = {
 
 export default class Pedestrian extends P5Component {
   grid: Grid
-  images: Images
   movementSpeed: number
   velocity: number[]
   destination: number[] = []
   neighbours: Pedestrian[] = []
   x: number = 0
   y: number = 0
+  gender: string = 'man'
 
   // TODO MAKE THESE CONTEXT VARIABLES WITH BUTTONS IN CTRL PANEL
   neighbourhoodRadius: number = 50
@@ -35,7 +33,6 @@ export default class Pedestrian extends P5Component {
   constructor(params: PedestrianParams) {
     super()
     this.grid = params.grid
-    this.images = params.images
     this.movementSpeed = params.movementSpeed ?? 1
 
     if (this.valid(params)) {
@@ -47,11 +44,15 @@ export default class Pedestrian extends P5Component {
     }
 
     this.velocity = this.getVelocity()
+
+    if (getRandomInt(3, 1) > 1) {
+      this.gender = 'woman'
+    }
   }
 
-  show = (p5: p5Types, state?: State) => {
+  show = (p5: p5Types, state: State) => {
     p5.image(
-      this.images['man'],
+      state!.images[this.gender],
       Math.round(this.x) - 20,
       Math.round(this.y) - 33,
       50,
@@ -62,43 +63,43 @@ export default class Pedestrian extends P5Component {
     p5.fill(0, 0, 0, 50)
     p5.ellipse(this.x, this.y, 20, 5)
 
-    if (state) {
-      // Show destination
-      if (state.showDestination) {
-        p5.fill(0)
-        p5.circle(this.destination[0], this.destination[1], 10)
+    this.playbackSpeed = state.playbackSpeed
 
-        p5.strokeWeight(1)
-        p5.stroke(100)
+    // Show destination
+    if (state.showDestination) {
+      p5.fill(0)
+      p5.circle(this.destination[0], this.destination[1], 10)
 
-        p5.line(this.x, this.y, this.destination[0], this.destination[1])
-      }
+      p5.strokeWeight(1)
+      p5.stroke(100)
 
-      // Show neighbourhood radius
-      if (state.showNeighbourhood) {
-        p5.noStroke()
-        p5.fill(200, 100, 100, 50)
-        p5.circle(this.x, this.y, this.neighbourhoodRadius * 2)
-      }
+      p5.line(this.x, this.y, this.destination[0], this.destination[1])
+    }
 
-      // Show velocity
-      if (state.showVelocity) {
-        p5.strokeWeight(1)
-        p5.stroke(100)
-        p5.line(
-          this.x,
-          this.y,
-          this.x + this.velocity[0] * 50,
-          this.y + this.velocity[1] * 50,
-        )
-        p5.noStroke()
-        p5.fill(100)
-        p5.circle(
-          this.x + this.velocity[0] * 50,
-          this.y + this.velocity[1] * 50,
-          3,
-        )
-      }
+    // Show neighbourhood radius
+    if (state.showNeighbourhood) {
+      p5.noStroke()
+      p5.fill(200, 100, 100, 50)
+      p5.circle(this.x, this.y, this.neighbourhoodRadius * 2)
+    }
+
+    // Show velocity
+    if (state.showVelocity) {
+      p5.strokeWeight(1)
+      p5.stroke(100)
+      p5.line(
+        this.x,
+        this.y,
+        this.x + this.velocity[0] * 50,
+        this.y + this.velocity[1] * 50,
+      )
+      p5.noStroke()
+      p5.fill(100)
+      p5.circle(
+        this.x + this.velocity[0] * 50,
+        this.y + this.velocity[1] * 50,
+        3,
+      )
     }
   }
 
