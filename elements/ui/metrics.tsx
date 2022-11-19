@@ -53,6 +53,6 @@ export default class Metrics extends P5Component {
     p5.noStroke()
     p5.fill(0)
     p5.textSize(textSize)
-    p5.text(`PS: ${(state.playbackSpeed * 5).toFixed(1)}x`, x + 0.05 * w, y + textSize * 1.15)
+    p5.text(`PS: ${(state.playbackSpeed).toFixed(1)}x`, x + 0.05 * w, y + textSize * 1.15)
   }
 }

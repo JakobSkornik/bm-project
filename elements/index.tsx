@@ -4,5 +4,5 @@ import { State } from '../types'
 export default class P5Component {
   show = (p5: p5Types, state: State) => {}
 
-  move = () => {}
+  move = (state: State) => {}
 }

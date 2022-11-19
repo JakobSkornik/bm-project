@@ -6,7 +6,8 @@ import P5Component from '..'
 import { getRandomInt } from '../hooks/getRandomInt'
 import { getRandomChoice } from '../hooks/getRandomChoice'
 import { getDistance } from '../hooks/getDistance'
-import { Images, State } from '../../types'
+import { State } from '../../types'
+import { clamp } from '../hooks/clamp'
 
 export type PedestrianParams = {
   crowd: Crowd
@@ -21,22 +22,15 @@ export default class Pedestrian extends P5Component {
   crowd: Crowd
   grid: Grid
   movementSpeed: number
-  playbackSpeed: number = 0.2
   velocity: number[]
   destination: number[] = []
   x: number = 0
   y: number = 0
   gender: string = 'man'
-
-  // TODO MAKE THESE CONTEXT VARIABLES WITH BUTTONS IN CTRL PANEL
-  protectedRangeRadius: number = 30
-  visualRangeRadius: number = 50
-  alignmentFactor: number = 0.01
-  separationFactor: number = 0.5
-  cohesionFactor: number = 0.001
-  bounds: boolean = false
-  turnFactor: number = 1
+  biasPoint: number[] = []
+  turnFactor: number = 0.2
   margin: number[] = []
+  hasBias: boolean = false
 
   constructor(params: PedestrianParams) {
     super()
@@ -54,6 +48,10 @@ export default class Pedestrian extends P5Component {
 
     this.velocity = this.getVelocity()
 
+    if (getRandomInt(100, 0) < 5) {
+      this.hasBias = true
+    }
+
     if (getRandomInt(3, 1) > 1) {
       this.gender = 'woman'
     }
@@ -63,7 +61,6 @@ export default class Pedestrian extends P5Component {
     const mW = p5.width / 20
     const mH = p5.height / 20
     this.margin = [mW, p5.width - mW, mH, p5.height - mH]
-    this.bounds = state.bounds
 
     p5.image(
       state!.images[this.gender],
@@ -73,11 +70,10 @@ export default class Pedestrian extends P5Component {
       50,
     )
 
+    // Shadow
     p5.noStroke()
     p5.fill(0, 0, 0, 50)
     p5.ellipse(this.x, this.y, 20, 5)
-
-    this.playbackSpeed = state.playbackSpeed
 
     // Show destination
     if (state.showDestination) {
@@ -94,8 +90,20 @@ export default class Pedestrian extends P5Component {
     if (state.showProtectedRange) {
       p5.noStroke()
       p5.fill(200, 100, 100, 50)
-      p5.circle(this.x, this.y, this.protectedRangeRadius * 2)
+      p5.circle(this.x, this.y, state.protectedRange * 2)
     }
+
+    // Show protectedRange radius
+    if (state.showPreferredRange) {
+      p5.noStroke()
+      p5.fill(100, 200, 100, 50)
+      p5.circle(this.x, this.y, state.preferredRange * 2)
+    }
+
+    // Show biasp
+    // p5.noStroke()
+    // p5.fill(100, 100, 200)
+    // p5.circle(this.biasPoint[0], this.biasPoint[1], 10)
 
     // Show velocity
     if (state.showVelocity) {
@@ -107,26 +115,100 @@ export default class Pedestrian extends P5Component {
         this.x + this.velocity[0] * 50,
         this.y + this.velocity[1] * 50,
       )
-      p5.noStroke()
-      p5.fill(100)
-      p5.circle(
-        this.x + this.velocity[0] * 50,
-        this.y + this.velocity[1] * 50,
-        3,
-      )
+      // p5.noStroke()
+      // p5.fill(100)
+      // p5.circle(
+      //   this.x + this.velocity[0] * 50,
+      //   this.y + this.velocity[1] * 50,
+      //   3,
+      // )
     }
   }
 
-  move = () => {
-    this.velocity = this.getVelocity()
+  move = (state: State) => {
+    this.velocity = this.getVelocity(state)
     for (let i = 0; i < this.movementSpeed; i++) {
-      this.x += this.velocity[0] * this.playbackSpeed
-      this.y += this.velocity[1] * this.playbackSpeed
+      this.x += this.velocity[0] * state.playbackSpeed
+      this.y += this.velocity[1] * state.playbackSpeed
 
       if (this.respawn()) {
         this.setRandomStartLocation()
       }
     }
+  }
+
+  getVelocity = (state?: State) => {
+    if (!state) {
+      return [0, 0]
+    }
+
+    const inProtected = this.getInProtectedRange(state.protectedRange)
+    const inPreferred = this.getInPreferredRange(state.preferredRange)
+
+    // BASE VELOCITY
+    let base: number[]
+    if (!state.bounds) {
+      const x1 = this.x
+      const y1 = this.y
+      const x2 = this.destination[0]
+      const y2 = this.destination[1]
+
+      const dx = x2 - x1
+      const dy = y2 - y1
+      const nFactor = Math.sqrt(dx * dx + dy * dy)
+      base = [dx / nFactor, dy / nFactor]
+    } else {
+      if (this.velocity[0] && this.velocity[1]) {
+        base = this.velocity
+      } else {
+        base = this.getRandomVelocity()
+      }
+
+      if (this.x < this.margin[0]) {
+        base[0] += this.turnFactor
+      }
+      if (this.x > this.margin[1]) {
+        base[0] -= this.turnFactor
+      }
+      if (this.y < this.margin[2]) {
+        base[1] += this.turnFactor
+      }
+      if (this.y > this.margin[3]) {
+        base[1] -= this.turnFactor
+      }
+    }
+
+    let alignment = state.alignment
+      ? this.getAlignmentVelocity(inPreferred)
+      : [0, 0]
+    let cohesion = state.cohesion
+      ? this.getCohesionVelocity(inPreferred)
+      : [0, 0]
+    let separation = state.separation
+      ? this.getSeparationVelocity(inProtected, state.protectedRange)
+      : [0, 0]
+    let bias = state.bias ? this.getBiasVelocity() : [0, 0]
+
+    return [
+      clamp(
+        base[0] +
+          bias[0] * state.biasFactor +
+          alignment[0] * state.alignmentFactor -
+          separation[0] * state.separationFactor +
+          cohesion[0] * state.cohesionFactor,
+        -1.3,
+        1.3,
+      ),
+      clamp(
+        base[1] +
+          bias[1] * state.biasFactor +
+          alignment[1] * state.alignmentFactor -
+          separation[1] * state.separationFactor +
+          cohesion[1] * state.cohesionFactor,
+        -1.3,
+        1.3,
+      ),
+    ]
   }
 
   valid = (params: PedestrianParams) => {
@@ -142,8 +224,7 @@ export default class Pedestrian extends P5Component {
 
   respawn = () => {
     return (
-      Math.round(this.x) == this.destination[0] &&
-      Math.round(this.y) == this.destination[1]
+      getDistance(this.x, this.y, this.destination[0], this.destination[1]) < 5
     )
   }
 
@@ -160,60 +241,17 @@ export default class Pedestrian extends P5Component {
     return [x, y]
   }
 
-  getVelocity = () => {
-    const inProtected = this.getInProtectedRange()
-    const inPreferred = this.getInPreferredRange()
-
-    let base = this.velocity
-      ? [
-          this.velocity[0] + getRandomInt(10) / 10,
-          this.velocity[1] + getRandomInt(10) / 10,
-        ]
-      : [getRandomInt(10), getRandomInt(10)]
-
-    // BASE VELOCITY
-    if (this.bounds) {
-      if (this.x < this.margin[0]) {
-        base[0] += this.turnFactor
-      }
-      if (this.x > this.margin[1]) {
-        base[0] -= this.turnFactor
-      }
-      if (this.y < this.margin[2]) {
-        base[1] += this.turnFactor
-      }
-      if (this.y > this.margin[3]) {
-        base[1] -= this.turnFactor
-      }
-      const nFactor = Math.sqrt(base[0] * base[0] + base[1] * base[1])
-      base = [base[0] / nFactor, base[1] / nFactor]
-    } else {
-      const x1 = this.x
-      const y1 = this.y
-      const x2 = this.destination[0]
-      const y2 = this.destination[1]
-
-      const dx = x2 - x1
-      const dy = y2 - y1
-      const nFactor = Math.sqrt(dx * dx + dy * dy)
-
-      base = [dx / nFactor, dy / nFactor]
-    }
-
-    let alignment = this.getAlignmentVelocity(inPreferred)
-    let separation = this.getSeparationVelocity(inProtected)
-    let cohesion = this.getCohesionVelocity(inPreferred)
-
+  getRandomPointInCanvas = () => {
     return [
-      base[0] +
-        alignment[0] * this.alignmentFactor -
-        separation[0] * this.separationFactor +
-        cohesion[0] * this.cohesionFactor,
-      base[1] +
-        alignment[1] * this.alignmentFactor -
-        separation[1] * this.separationFactor +
-        cohesion[1] * this.cohesionFactor,
+      getRandomInt(this.margin[1] - 10, this.margin[0] + 10),
+      getRandomInt(this.margin[3] - 10, this.margin[2] + 10),
     ]
+  }
+
+  getRandomVelocity = () => {
+    let base = this.getRandomPointInCanvas()
+    let nFactor = Math.sqrt(base[0] * base[0] + base[1] * base[1])
+    return [base[0] / nFactor, base[1] / nFactor]
   }
 
   getAlignmentVelocity = (inPreferred: Pedestrian[]) => {
@@ -229,15 +267,11 @@ export default class Pedestrian extends P5Component {
     }
     vx /= n
     vy /= n
-
-    const dx = vx - this.x
-    const dy = vy - this.y
-    let d = Math.sqrt(dx * dx + dy * dy)
-
-    return [dx / d, dy / d]
+    let d = Math.sqrt(vx * vx + vy * vy)
+    return [vx / d, vy / d]
   }
 
-  getSeparationVelocity = (inProtected: Pedestrian[]) => {
+  getSeparationVelocity = (inProtected: Pedestrian[], range: number) => {
     if (!inProtected.length) {
       return [0, 0]
     }
@@ -247,8 +281,8 @@ export default class Pedestrian extends P5Component {
       sx += inProtected[i].x - this.x
       sy += inProtected[i].y - this.y
       const d = getDistance(this.x, this.y, inProtected[i].x, inProtected[i].y)
-      sx = sx * (1 - d / this.protectedRangeRadius)
-      sx = sy * (1 - d / this.protectedRangeRadius)
+      sx = sx * (1 - d / range)
+      sx = sy * (1 - d / range)
       n++
     }
     let sf = Math.sqrt(sx * sx + sy * sy)
@@ -278,7 +312,33 @@ export default class Pedestrian extends P5Component {
     return [dx / d, dy / d]
   }
 
-  getInProtectedRange = () => {
+  getBiasVelocity = () => {
+    if (!this.hasBias || !this.velocity[0] || !this.velocity[1]) {
+      return [0, 0]
+    }
+
+    if (!this.biasPoint.length) {
+      this.biasPoint = this.getRandomPointInCanvas()
+    }
+
+    // Set new biaspoint on finish
+    let d = getDistance(this.x, this.y, this.biasPoint[0], this.biasPoint[1])
+    if (d < 6) {
+      this.biasPoint = this.getRandomPointInCanvas()
+    }
+
+    let bf = Math.sqrt(
+      Math.pow(this.biasPoint[0], 2) + Math.pow(this.biasPoint[1], 2),
+    )
+    const dx = this.biasPoint[0] / bf - this.velocity[0]
+    const dy = this.biasPoint[1] / bf - this.velocity[1]
+    let df = Math.sqrt(dx * dx + dy * dy)
+
+    // Normalize bias direction
+    return [dx / df, dy / df]
+  }
+
+  getInProtectedRange = (range: number) => {
     if (!this.velocity) {
       return []
     }
@@ -291,7 +351,7 @@ export default class Pedestrian extends P5Component {
         this.crowd.pedestrians[i].x,
         this.crowd.pedestrians[i].y,
       )
-      if (d <= this.protectedRangeRadius && d > 0) {
+      if (d <= range && d > 0) {
         inProtected.push(this.crowd.pedestrians[i])
       }
     }
@@ -312,10 +372,11 @@ export default class Pedestrian extends P5Component {
     // return preferred
   }
 
-  getInPreferredRange = () => {
+  getInPreferredRange = (range: number) => {
     if (!this.velocity) {
       return []
     }
+
     let inVisual: Pedestrian[] = []
     let preferred: Pedestrian[] = []
     for (let i = 0; i < this.crowd.pedestrians.length; i++) {
@@ -325,7 +386,7 @@ export default class Pedestrian extends P5Component {
         this.crowd.pedestrians[i].x,
         this.crowd.pedestrians[i].y,
       )
-      if (d <= this.visualRangeRadius && d > 0) {
+      if (d <= range && d > 0) {
         inVisual.push(this.crowd.pedestrians[i])
       }
     }

@@ -45,7 +45,6 @@ const imgToLoad = [
 ]
 
 const Index = () => {
-  // State
   const { state, actions } = useGlobalContext()
   const [dims, setDims] = useState({ w: 0, h: 0 })
   const [font, setFont] = useState<p5Types.Font>()
@@ -61,8 +60,7 @@ const Index = () => {
       h: window.innerHeight,
     })
     window.addEventListener('resize', handleResize, false)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [handleResize])
 
   // Helper method to load assets
   const loadAssets = (p5: p5Types) => {
@@ -103,7 +101,7 @@ const Index = () => {
   const setup = (p5: p5Types, canvasParentRef: Element) => {
     p5.createCanvas(dims.w, dims.h).parent(canvasParentRef)
     p5.textFont(font!)
-    p5.frameRate(144)
+    p5.frameRate(80)
     loadAssets(p5)
   }
 

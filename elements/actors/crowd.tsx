@@ -34,14 +34,14 @@ export default class Crowd extends P5Component {
     this.move(state)
   }
 
-  move = (state?: State) => {
+  move = (state: State) => {
     for (let i = 0; i < this.pedestrians.length; i++) {
       /**
        * TODO
        * Extend appconfig to contain boolean for toggling neighbours
        */
 
-      this.pedestrians[i].move()
+      this.pedestrians[i].move(state)
     }
   }
 

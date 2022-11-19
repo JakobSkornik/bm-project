@@ -6,8 +6,7 @@ import { ButtonProps } from '../types'
 const sx = {
   button: {
     position: 'relative' as 'relative',
-    fontSize: '20px',
-    borderRadius: '2px',
+    borderRadius: 'min(1vh, 1vw)',
     border: '1px solid #E0E0E060',
     color: 'green',
     outline: 'none',
@@ -56,6 +55,7 @@ const Button = (props: ButtonProps) => {
         />
       )}
       <span>{props.text}</span>
+      {props.children}
     </button>
   )
 }
