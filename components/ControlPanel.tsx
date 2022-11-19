@@ -319,7 +319,7 @@ const ControlPanel = () => {
           {popup == 'cohesion' && (
             <ControlPanelSlider
               min={0}
-              max={0.01}
+              max={0.0099}
               step={0.0001}
               default={state.cohesionFactor}
               stateVar={'cohesionFactor'}
@@ -365,8 +365,8 @@ const ControlPanel = () => {
           {popup == 'bias' && (
             <ControlPanelSlider
               min={0}
-              max={0.99}
-              step={0.01}
+              max={0.099}
+              step={0.001}
               default={state.biasFactor}
               stateVar={'biasFactor'}
               vertical={vertical}

@@ -147,6 +147,8 @@ export default class Pedestrian extends P5Component {
 
     // BASE VELOCITY
     let base: number[]
+
+    // Bounds determine whether grid is closed
     if (!state.bounds) {
       const x1 = this.x
       const y1 = this.y
@@ -157,13 +159,15 @@ export default class Pedestrian extends P5Component {
       const dy = y2 - y1
       const nFactor = Math.sqrt(dx * dx + dy * dy)
       base = [dx / nFactor, dy / nFactor]
-    } else {
-      if (this.velocity[0] && this.velocity[1]) {
-        base = this.velocity
-      } else {
-        base = this.getRandomVelocity()
+    }
+    // Add turn when over bounds in bound mode
+    else {
+      // Sanity check that velocity exists
+      if (!this.velocity[0] || !this.velocity[1]) {
+        this.velocity = this.getRandomVelocity()
       }
 
+      base = this.velocity
       if (this.x < this.margin[0]) {
         base[0] += this.turnFactor
       }
@@ -258,16 +262,20 @@ export default class Pedestrian extends P5Component {
     if (!inPreferred.length) {
       return [0, 0]
     }
-
     let [vx, vy, n] = [0, 0, 0]
     for (let i = 0; i < inPreferred.length; i++) {
       vx += inPreferred[i].velocity[0]
       vy += inPreferred[i].velocity[1]
       n++
     }
+
     vx /= n
     vy /= n
-    let d = Math.sqrt(vx * vx + vy * vy)
+    const d = Math.sqrt(vx * vx + vy * vy)
+    if (!n || !d) {
+      return [0, 0]
+    }
+
     return [vx / d, vy / d]
   }
 
@@ -280,9 +288,9 @@ export default class Pedestrian extends P5Component {
     for (let i = 0; i < inProtected.length; i++) {
       sx += inProtected[i].x - this.x
       sy += inProtected[i].y - this.y
-      const d = getDistance(this.x, this.y, inProtected[i].x, inProtected[i].y)
-      sx = sx * (1 - d / range)
-      sx = sy * (1 - d / range)
+      // const d = getDistance(this.x, this.y, inProtected[i].x, inProtected[i].y)
+      // sx = sx * (1 - d / range)
+      // sx = sy * (1 - d / range)
       n++
     }
     let sf = Math.sqrt(sx * sx + sy * sy)
@@ -330,10 +338,10 @@ export default class Pedestrian extends P5Component {
     let bf = Math.sqrt(
       Math.pow(this.biasPoint[0], 2) + Math.pow(this.biasPoint[1], 2),
     )
-    const dx = this.biasPoint[0] / bf - this.velocity[0]
-    const dy = this.biasPoint[1] / bf - this.velocity[1]
+    const dx =  this.velocity[0] - this.biasPoint[0] / bf
+    const dy = this.velocity[1] - this.biasPoint[1] / bf
     let df = Math.sqrt(dx * dx + dy * dy)
-
+    
     // Normalize bias direction
     return [dx / df, dy / df]
   }
