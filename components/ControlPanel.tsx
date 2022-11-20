@@ -50,10 +50,18 @@ const sx = {
   },
 }
 
+const icons = [
+  'human',
+  'ant',
+  'buffalo',
+  'fish'
+]
+
 const ControlPanel = () => {
   const { state, actions } = useGlobalContext()
   const [vertical, setVertical] = useState<boolean>(false)
   const [popup, setPopup] = useState<string>('')
+  const [iconIdx, setIconIdx] = useState<number>(0)
 
   const handleResize = useCallback(() => {
     setVertical(window.innerWidth < window.innerHeight)
@@ -123,6 +131,12 @@ const ControlPanel = () => {
     }
   }
 
+  const toggleIcon = () => {
+    const idx = (iconIdx + 1) % icons.length
+    actions('icon', icons[idx])
+    setIconIdx(idx)
+  }
+
   return (
     <div
       style={{
@@ -157,6 +171,14 @@ const ControlPanel = () => {
           value="clear"
           onClick={() => actions('clear', true)}
           icon="clear.svg"
+          onMouseEnter={openCtrlPanel}
+        />
+        <Button
+          style={sx.btn}
+          text=""
+          value="icon"
+          onClick={() => toggleIcon()}
+          icon={`${state.icon}m.svg`}
           onMouseEnter={openCtrlPanel}
         />
         <Button

@@ -34,14 +34,14 @@ const sx = {
 
 // Static assets to load
 const imgToLoad = [
-  'block',
-  'bridge',
-  'cityhouse',
-  'house',
-  'house2',
-  'man',
-  'sidewalk',
-  'woman',
+  'humanm',
+  'humanf',
+  'buffalom',
+  'buffalof',
+  'antm',
+  'antf',
+  'fishm',
+  'fishf',
 ]
 
 const Index = () => {

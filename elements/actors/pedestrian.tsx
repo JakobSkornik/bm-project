@@ -7,7 +7,6 @@ import { getRandomInt } from '../hooks/getRandomInt'
 import { getRandomChoice } from '../hooks/getRandomChoice'
 import { getDistance } from '../hooks/getDistance'
 import { State } from '../../types'
-import { clamp } from '../hooks/clamp'
 
 export type PedestrianParams = {
   crowd: Crowd
@@ -22,7 +21,7 @@ export default class Pedestrian extends P5Component {
   crowd: Crowd
   grid: Grid
   movementSpeed: number
-  velocity: number[]
+  velocity: number[] = [0, 0]
   destination: number[] = []
   x: number = 0
   y: number = 0
@@ -52,28 +51,30 @@ export default class Pedestrian extends P5Component {
       this.hasBias = true
     }
 
+    this.gender = 'm'
     if (getRandomInt(3, 1) > 1) {
-      this.gender = 'woman'
+      this.gender = 'f'
     }
   }
 
   show = (p5: p5Types, state: State) => {
+    if (!state || !state.images || !state.icon) {
+      return
+    }
+
     const mW = p5.width / 20
     const mH = p5.height / 20
     this.margin = [mW, p5.width - mW, mH, p5.height - mH]
 
     p5.image(
-      state!.images[this.gender],
+      state.images[state.icon + this.gender],
       Math.round(this.x) - 20,
       Math.round(this.y) - 33,
       50,
       50,
     )
 
-    // Shadow
-    p5.noStroke()
-    p5.fill(0, 0, 0, 50)
-    p5.ellipse(this.x, this.y, 20, 5)
+    this.drawShadow(p5, state)
 
     // Show destination
     if (state.showDestination) {
@@ -138,16 +139,16 @@ export default class Pedestrian extends P5Component {
   }
 
   getVelocity = (state?: State) => {
+    let base: number[] = [0, 0]
+
     if (!state) {
-      return [0, 0]
+      return base
     }
 
     const inProtected = this.getInProtectedRange(state.protectedRange)
     const inPreferred = this.getInPreferredRange(state.preferredRange)
 
     // BASE VELOCITY
-    let base: number[]
-
     // Bounds determine whether grid is closed
     if (!state.bounds) {
       const x1 = this.x
@@ -167,7 +168,7 @@ export default class Pedestrian extends P5Component {
         this.velocity = this.getRandomVelocity()
       }
 
-      base = this.velocity
+      base = [...this.velocity]
       if (this.x < this.margin[0]) {
         base[0] += this.turnFactor
       }
@@ -191,28 +192,22 @@ export default class Pedestrian extends P5Component {
     let separation = state.separation
       ? this.getSeparationVelocity(inProtected, state.protectedRange)
       : [0, 0]
-    let bias = state.bias ? this.getBiasVelocity() : [0, 0]
+    let bias = state.bias ? this.getBiasVelocity() : [0, 0] 
 
-    return [
-      clamp(
-        base[0] +
-          bias[0] * state.biasFactor +
-          alignment[0] * state.alignmentFactor -
-          separation[0] * state.separationFactor +
-          cohesion[0] * state.cohesionFactor,
-        -1.3,
-        1.3,
-      ),
-      clamp(
-        base[1] +
-          bias[1] * state.biasFactor +
-          alignment[1] * state.alignmentFactor -
-          separation[1] * state.separationFactor +
-          cohesion[1] * state.cohesionFactor,
-        -1.3,
-        1.3,
-      ),
+    const result = [
+      base[0] +
+        bias[0] * (state.biasFactor as number) +
+        alignment[0] * (state.alignmentFactor as number) -
+        separation[0] * (state.separationFactor as number) +
+        cohesion[0] * (state.cohesionFactor as number),
+      base[1] +
+        bias[1] * (state.biasFactor as number) +
+        alignment[1] * (state.alignmentFactor as number) -
+        separation[1] * (state.separationFactor as number) +
+        cohesion[1] * (state.cohesionFactor as number),
     ]
+    const nFactor = Math.sqrt(result[0] * result[0] + result[1] * result[1])
+    return [result[0] / nFactor, result[1] / nFactor]
   }
 
   valid = (params: PedestrianParams) => {
@@ -288,9 +283,9 @@ export default class Pedestrian extends P5Component {
     for (let i = 0; i < inProtected.length; i++) {
       sx += inProtected[i].x - this.x
       sy += inProtected[i].y - this.y
-      // const d = getDistance(this.x, this.y, inProtected[i].x, inProtected[i].y)
-      // sx = sx * (1 - d / range)
-      // sx = sy * (1 - d / range)
+      const d = getDistance(this.x, this.y, inProtected[i].x, inProtected[i].y)
+      sx = sx * (1 - d / range)
+      sx = sy * (1 - d / range)
       n++
     }
     let sf = Math.sqrt(sx * sx + sy * sy)
@@ -338,10 +333,10 @@ export default class Pedestrian extends P5Component {
     let bf = Math.sqrt(
       Math.pow(this.biasPoint[0], 2) + Math.pow(this.biasPoint[1], 2),
     )
-    const dx =  this.velocity[0] - this.biasPoint[0] / bf
+    const dx = this.velocity[0] - this.biasPoint[0] / bf
     const dy = this.velocity[1] - this.biasPoint[1] / bf
     let df = Math.sqrt(dx * dx + dy * dy)
-    
+
     // Normalize bias direction
     return [dx / df, dy / df]
   }
@@ -351,7 +346,6 @@ export default class Pedestrian extends P5Component {
       return []
     }
     let inProtected: Pedestrian[] = []
-    let preferred: Pedestrian[] = []
     for (let i = 0; i < this.crowd.pedestrians.length; i++) {
       const d = getDistance(
         this.x,
@@ -364,20 +358,6 @@ export default class Pedestrian extends P5Component {
       }
     }
     return inProtected
-
-    // Filter people going wrong way
-    // for (let i = 0; i < inProtected.length; i++) {
-    //   if (this.velocity.length && inProtected[i].velocity.length) {
-    //     const firstAngle = Math.atan2(this.velocity[1], this.velocity[0])
-    //     const secondAngle = Math.atan2(inProtected[i].y, inProtected[i].x)
-    //     const angle = secondAngle - firstAngle
-    //     if (Math.abs((angle * 180) / Math.PI) < 40) {
-    //       preferred.push(inProtected[i])
-    //     }
-    //   }
-    // }
-
-    // return preferred
   }
 
   getInPreferredRange = (range: number) => {
@@ -386,7 +366,6 @@ export default class Pedestrian extends P5Component {
     }
 
     let inVisual: Pedestrian[] = []
-    let preferred: Pedestrian[] = []
     for (let i = 0; i < this.crowd.pedestrians.length; i++) {
       const d = getDistance(
         this.x,
@@ -399,22 +378,22 @@ export default class Pedestrian extends P5Component {
       }
     }
     return inVisual
+  }
 
-    // Filter people going wrong way
-    // for (let i = 0; i < inVisual.length; i++) {
-    //   if (this.velocity.length && inVisual[i].velocity.length) {
-    //     const firstAngle = Math.atan2(this.velocity[1], this.velocity[0])
-    //     const secondAngle = Math.atan2(
-    //       inVisual[i].velocity[1],
-    //       inVisual[i].velocity[0],
-    //     )
-    //     const angle = secondAngle - firstAngle
-    //     if (Math.abs((angle * 180) / Math.PI) < 45) {
-    //       preferred.push(inVisual[i])
-    //     }
-    //   }
-    // }
+  drawShadow = (p5: p5Types, state: State) => {
+    p5.noStroke()
+    p5.fill(0, 0, 0, 50)
+    if (state.icon == 'human') {
+      p5.ellipse(this.x, this.y, 20, 5)
+    } else if (state.icon == 'ant') {
+      p5.ellipse(this.x-2, this.y, 40, 10)
+    } else if (state.icon == 'buffalo') {
+      if (this.gender == 'f') {
+        p5.ellipse(this.x + 4, this.y + 15, 40, 10)
+      } else {
+        p5.ellipse(this.x + 2, this.y + 10, 40, 10)
 
-    // return preferred
+      }
+    }
   }
 }

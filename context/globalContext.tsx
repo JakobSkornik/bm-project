@@ -16,6 +16,7 @@ const GlobalContextProvider: FC<GlobalContextProps> = (props: GlobalContextProps
   const [cohesion, setCohesion] = useState<boolean>(false)
   const [cohesionFactor, setCohesionFactor] = useState<number>(0.0005)
   const [components, setComponents] = useState<Components>({})
+  const [icon, setIcon] = useState<string>('human')
   const [images, setImages] = useState<Images>({})
   const [numOfPedestrians, setNumOfPedestrians] = useState<number>(1)
   const [pause, setPause] = useState<boolean>(false)
@@ -42,6 +43,7 @@ const GlobalContextProvider: FC<GlobalContextProps> = (props: GlobalContextProps
       cohesion: cohesion,
       cohesionFactor: cohesionFactor,
       components: components as Components,
+      icon: icon,
       images: images as Images,
       numOfPedestrians: numOfPedestrians,
       pause: pause,
@@ -93,6 +95,10 @@ const GlobalContextProvider: FC<GlobalContextProps> = (props: GlobalContextProps
         }
         case 'components': {
           setComponents(val)
+          break
+        }
+        case 'icon': {
+          setIcon(val)
           break
         }
         case 'images': {
