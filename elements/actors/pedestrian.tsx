@@ -66,15 +66,7 @@ export default class Pedestrian extends P5Component {
     const mH = p5.height / 20
     this.margin = [mW, p5.width - mW, mH, p5.height - mH]
 
-    p5.image(
-      state.images[state.icon + this.gender],
-      Math.round(this.x) - 20,
-      Math.round(this.y) - 33,
-      50,
-      50,
-    )
-
-    this.drawShadow(p5, state)
+    this.drawEntity(p5, state)
 
     // Show destination
     if (state.showDestination) {
@@ -192,7 +184,7 @@ export default class Pedestrian extends P5Component {
     let separation = state.separation
       ? this.getSeparationVelocity(inProtected, state.protectedRange)
       : [0, 0]
-    let bias = state.bias ? this.getBiasVelocity() : [0, 0] 
+    let bias = state.bias ? this.getBiasVelocity() : [0, 0]
 
     const result = [
       base[0] +
@@ -380,20 +372,70 @@ export default class Pedestrian extends P5Component {
     return inVisual
   }
 
-  drawShadow = (p5: p5Types, state: State) => {
-    p5.noStroke()
-    p5.fill(0, 0, 0, 50)
+  drawEntity = (p5: p5Types, state: State) => {
     if (state.icon == 'human') {
-      p5.ellipse(this.x, this.y, 20, 5)
-    } else if (state.icon == 'ant') {
-      p5.ellipse(this.x-2, this.y, 40, 10)
-    } else if (state.icon == 'buffalo') {
-      if (this.gender == 'f') {
-        p5.ellipse(this.x + 4, this.y + 15, 40, 10)
-      } else {
-        p5.ellipse(this.x + 2, this.y + 10, 40, 10)
+      p5.image(
+        state.images[state.icon + this.gender],
+        Math.round(this.x) - 20,
+        Math.round(this.y) - 33,
+        50,
+        50,
+      )
 
-      }
+      p5.noStroke()
+      p5.fill(0, 0, 0, 50)
+      p5.ellipse(this.x, this.y, 20, 5)
+      return
+    }
+    if (state.icon == 'buffalo') {
+      p5.image(
+        state.images[state.icon + this.gender],
+        Math.round(this.x) - 30,
+        Math.round(this.y) - 45,
+        50,
+        50,
+      )
+
+      p5.noStroke()
+      p5.fill(0, 0, 0, 50)
+      p5.ellipse(this.x, this.y, 40, 10)
+      return
+    }
+
+    if (state.icon == 'ant') {
+      p5.push()
+      p5.translate(this.x, this.y)
+      const angle = Math.atan2(this.velocity[1], this.velocity[0])
+      p5.rotate(angle)
+      p5.image(
+        state.images[state.icon + this.gender],
+        -40,
+        -25,
+        50,
+        50,
+      )
+
+      p5.noStroke()
+      p5.fill(0, 0, 0, 50)
+      p5.ellipse(this.x, this.y, 20, 5)
+      p5.pop()
+      return
+    }
+
+    if (state.icon == 'fish') {
+      p5.push()
+      p5.translate(this.x, this.y)
+      const angle = Math.atan2(this.velocity[1], this.velocity[0])
+      p5.rotate(angle)
+      p5.image(
+        state.images[state.icon + this.gender],
+        -40,
+        -25,
+        50,
+        50,
+      )
+      p5.pop()
+      return
     }
   }
 }
