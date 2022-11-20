@@ -417,7 +417,7 @@ export default class Pedestrian extends P5Component {
 
       p5.noStroke()
       p5.fill(0, 0, 0, 50)
-      p5.ellipse(this.x, this.y, 20, 5)
+      p5.ellipse(-15, 0, 40, 20)
       p5.pop()
       return
     }
