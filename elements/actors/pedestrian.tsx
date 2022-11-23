@@ -437,5 +437,21 @@ export default class Pedestrian extends P5Component {
       p5.pop()
       return
     }
+
+    if (state.icon == 'bird') {
+      p5.push()
+      p5.translate(this.x, this.y)
+      const angle = Math.atan2(this.velocity[1], this.velocity[0])
+      p5.rotate(angle)
+      p5.image(
+        state.images[state.icon + this.gender],
+        -40,
+        -40,
+        50,
+        50,
+      )
+      p5.pop()
+      return
+    }
   }
 }

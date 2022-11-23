@@ -42,6 +42,8 @@ const imgToLoad = [
   'antf',
   'fishm',
   'fishf',
+  'birdm',
+  'birdf',
 ]
 
 const Index = () => {

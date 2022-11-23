@@ -54,7 +54,8 @@ const icons = [
   'human',
   'ant',
   'buffalo',
-  'fish'
+  'fish',
+  'bird'
 ]
 
 const ControlPanel = () => {

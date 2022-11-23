@@ -31,13 +31,21 @@ const sx = {
 
 export default function App({ Component, pageProps }: AppProps) {
   const [showMsg, setShowMsg] = useState(true)
+  let message = ''
 
   useEffect(() => {
+    console.log('showMsg')
+  }, [])
 
+  useEffect(() => {
     // Disable right click menu so 2nd mb can be used by app
-    document.addEventListener("contextmenu", function (e){
-      e.preventDefault();
-  }, false);
+    document.addEventListener(
+      'contextmenu',
+      function (e) {
+        e.preventDefault()
+      },
+      false,
+    )
 
     const timeId = setTimeout(() => {
       setShowMsg(false)
@@ -46,15 +54,26 @@ export default function App({ Component, pageProps }: AppProps) {
     return () => {
       clearTimeout(timeId)
     }
-
   }, [])
 
   return (
     <GlobalContextProvider>
-      <div style={{ ...sx.message, ...sx.welcomeMessage, opacity: showMsg ? '0.9' : '0' }}>
+      <div
+        style={{
+          ...sx.message,
+          ...sx.welcomeMessage,
+          opacity: showMsg ? '0.9' : '0',
+        }}
+      >
         <h1>press SPACEBAR to spawn more humaboids</h1>
       </div>
-      <div style={{ ...sx.message, ...sx.ctrlPanelMessage, opacity: showMsg ? '0.9' : '0' }}>
+      <div
+        style={{
+          ...sx.message,
+          ...sx.ctrlPanelMessage,
+          opacity: showMsg ? '0.9' : '0',
+        }}
+      >
         <h2>modify scene with control panel</h2>
       </div>
       <Component {...pageProps} />
