@@ -50,13 +50,7 @@ const sx = {
   },
 }
 
-const icons = [
-  'human',
-  'ant',
-  'buffalo',
-  'fish',
-  'bird'
-]
+const icons = ['human', 'ant', 'buffalo', 'fish', 'bird']
 
 const ControlPanel = () => {
   const { state, actions } = useGlobalContext()
@@ -118,6 +112,11 @@ const ControlPanel = () => {
 
     actions('showCtrlPanel', true)
     setPopup(popupName)
+  }
+
+  const addPredator = () => {
+    console.log('Add')
+    actions('numOfPredators', state.numOfPredators + 1)
   }
 
   const closeCtrlPanel = () => {
@@ -306,6 +305,14 @@ const ControlPanel = () => {
             />
           )}
         </Button>
+        <Button
+          style={sx.btn}
+          text=""
+          value="addPredator"
+          onClick={() => addPredator()}
+          icon="predator.svg"
+          onMouseEnter={openCtrlPanel}
+        ></Button>
         <Button
           style={state.alignment ? { ...sx.btn, ...sx.btnActive } : sx.btn}
           text=""

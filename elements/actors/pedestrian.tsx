@@ -7,6 +7,7 @@ import { getRandomInt } from '../hooks/getRandomInt'
 import { getRandomChoice } from '../hooks/getRandomChoice'
 import { getDistance } from '../hooks/getDistance'
 import { State } from '../../types'
+import Predator from './predator'
 
 export type PedestrianParams = {
   crowd: Crowd
@@ -139,6 +140,7 @@ export default class Pedestrian extends P5Component {
 
     const inProtected = this.getInProtectedRange(state.protectedRange)
     const inPreferred = this.getInPreferredRange(state.preferredRange)
+    const inDanger = this.getPredatorsInRange()
 
     // BASE VELOCITY
     // Bounds determine whether grid is closed
@@ -175,6 +177,8 @@ export default class Pedestrian extends P5Component {
       }
     }
 
+    let baseNorm = Math.sqrt(base[0] * base[0] + base[1] * base[1])
+
     let alignment = state.alignment
       ? this.getAlignmentVelocity(inPreferred)
       : [0, 0]
@@ -184,22 +188,23 @@ export default class Pedestrian extends P5Component {
     let separation = state.separation
       ? this.getSeparationVelocity(inProtected, state.protectedRange)
       : [0, 0]
+    let predators = this.getPredatorVelocity(inDanger)
     let bias = state.bias ? this.getBiasVelocity() : [0, 0]
 
-    const result = [
-      base[0] +
+    return [
+      base[0] / baseNorm +
         bias[0] * (state.biasFactor as number) +
         alignment[0] * (state.alignmentFactor as number) -
-        separation[0] * (state.separationFactor as number) +
+        separation[0] * (state.separationFactor as number) -
+        predators[0] * 0.8 +
         cohesion[0] * (state.cohesionFactor as number),
-      base[1] +
+      base[1] / baseNorm +
         bias[1] * (state.biasFactor as number) +
         alignment[1] * (state.alignmentFactor as number) -
-        separation[1] * (state.separationFactor as number) +
+        separation[1] * (state.separationFactor as number) -
+        predators[1] * 0.8 +
         cohesion[1] * (state.cohesionFactor as number),
     ]
-    const nFactor = Math.sqrt(result[0] * result[0] + result[1] * result[1])
-    return [result[0] / nFactor, result[1] / nFactor]
   }
 
   valid = (params: PedestrianParams) => {
@@ -333,6 +338,26 @@ export default class Pedestrian extends P5Component {
     return [dx / df, dy / df]
   }
 
+  getPredatorVelocity = (inDanger: Predator[]) => {
+    if (!inDanger.length) {
+      return [0, 0]
+    }
+
+    let [sx, sy, n] = [0, 0, 0]
+    for (let i = 0; i < inDanger.length; i++) {
+      sx += inDanger[i].x - this.x
+      sy += inDanger[i].y - this.y
+      const d = getDistance(this.x, this.y, inDanger[i].x, inDanger[i].y)
+      sx = sx * (1 - d / 300)
+      sx = sy * (1 - d / 300)
+      n++
+    }
+    let sf = Math.sqrt(sx * sx + sy * sy)
+    sx /= n * sf
+    sy /= n * sf
+    return [sx, sy]
+  }
+
   getInProtectedRange = (range: number) => {
     if (!this.velocity) {
       return []
@@ -371,6 +396,29 @@ export default class Pedestrian extends P5Component {
     }
     return inVisual
   }
+
+  getPredatorsInRange = () => {
+    if (!this.velocity) {
+      return []
+    }
+
+    const range = 300
+
+    let inDanger: Predator[] = []
+    for (let i = 0; i < this.crowd.predators.length; i++) {
+      const d = getDistance(
+        this.x,
+        this.y,
+        this.crowd.predators[i].x,
+        this.crowd.predators[i].y,
+      )
+      if (d <= range && d > 0) {
+        inDanger.push(this.crowd.predators[i])
+      }
+    }
+    return inDanger
+  }
+
 
   drawEntity = (p5: p5Types, state: State) => {
     if (state.icon == 'human') {

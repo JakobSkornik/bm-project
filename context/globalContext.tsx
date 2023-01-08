@@ -19,6 +19,7 @@ const GlobalContextProvider: FC<GlobalContextProps> = (props: GlobalContextProps
   const [icon, setIcon] = useState<string>('human')
   const [images, setImages] = useState<Images>({})
   const [numOfPedestrians, setNumOfPedestrians] = useState<number>(1)
+  const [numOfPredators, setNumOfPredators] = useState<number>(0)
   const [pause, setPause] = useState<boolean>(false)
   const [pedestriansToAdd, setPedestriansToAdd] = useState<number>(1)
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1)
@@ -46,6 +47,7 @@ const GlobalContextProvider: FC<GlobalContextProps> = (props: GlobalContextProps
       icon: icon,
       images: images as Images,
       numOfPedestrians: numOfPedestrians,
+      numOfPredators: numOfPredators,
       pause: pause,
       pedestriansToAdd: pedestriansToAdd,
       playbackSpeed: playbackSpeed,
@@ -111,6 +113,10 @@ const GlobalContextProvider: FC<GlobalContextProps> = (props: GlobalContextProps
         }
         case 'numOfPedestrians': {
           setNumOfPedestrians(val)
+          break
+        }
+        case 'numOfPredators': {
+          setNumOfPredators(val)
           break
         }
         case 'pause': {

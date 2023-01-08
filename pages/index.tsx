@@ -10,7 +10,7 @@ import ControlPanel from '../components/ControlPanel'
 import Metrics from '../elements/ui/metrics'
 import P5Background from '../elements/static/p5background'
 import Crowd from '../elements/actors/crowd'
-import Grid, { GridParams } from '../elements/static/grid'
+import Grid from '../elements/static/grid'
 import { Components, Images } from '../types'
 import { useGlobalContext } from '../context'
 
@@ -36,14 +36,19 @@ const sx = {
 const imgToLoad = [
   'humanm',
   'humanf',
+  'humanp',
   'buffalom',
   'buffalof',
+  'buffalop',
   'antm',
   'antf',
+  'antp',
   'fishm',
   'fishf',
+  'fishp',
   'birdm',
   'birdf',
+  'birdp'
 ]
 
 const Index = () => {
@@ -123,6 +128,7 @@ const Index = () => {
       loadAssets(p5)
       actions('clear', false)
       actions('numOfPedestrians', 1)
+      actions('numOfPredators', 0)
     }
 
     if (state.pause) {
