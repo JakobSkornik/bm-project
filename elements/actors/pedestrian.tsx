@@ -196,13 +196,13 @@ export default class Pedestrian extends P5Component {
         bias[0] * (state.biasFactor as number) +
         alignment[0] * (state.alignmentFactor as number) -
         separation[0] * (state.separationFactor as number) -
-        predators[0] * 0.8 +
+        predators[0] * 0.2 +
         cohesion[0] * (state.cohesionFactor as number),
       base[1] / baseNorm +
         bias[1] * (state.biasFactor as number) +
         alignment[1] * (state.alignmentFactor as number) -
         separation[1] * (state.separationFactor as number) -
-        predators[1] * 0.8 +
+        predators[1] * 0.2 +
         cohesion[1] * (state.cohesionFactor as number),
     ]
   }
