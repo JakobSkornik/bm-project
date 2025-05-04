@@ -78,7 +78,7 @@ const Index = () => {
     for (let i = 0; i < imgToLoad.length; i++) {
       images[imgToLoad[i]] = p5.loadImage(`icons/${imgToLoad[i]}.svg`)
     }
-
+    console.log('images', images)
     // Initialize dynamic components
     components['background'] = new P5Background()
 
